@@ -2,4 +2,12 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Greens -->
+    <color name="green_card">#39714A</color>
+    <color name="green_primary">#4CAF50</color> <!-- Main Green -->
+    <color name="green_dark">#388E3C</color>    <!-- Darker Green -->
+    <color name="green_light">#C8E6C9</color>   <!-- Light Green -->
+    <color name="green_background">#E8F5E9</color> <!-- Very light green for backgrounds -->
+    <color name="bottom_nav_bg">#FFF9C4</color>
 </resources>

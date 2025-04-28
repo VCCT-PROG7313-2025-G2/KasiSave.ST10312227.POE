@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Background -->
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <solid android:color="#D3D3D3"/> <!-- light gray or your background color -->
+            <corners android:radius="16dp"/>
+        </shape>
+    </item>
+
+    <!-- Progress -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape android:shape="rectangle">
+                <solid android:color="#4CAF50"/> <!-- your green color -->
+                <corners android:radius="16dp"/>
+            </shape>
+        </clip>
+    </item>
+
+    <!-- Secondary Progress (optional, for buffer) -->
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape android:shape="rectangle">
+                <solid android:color="#A5D6A7"/> <!-- lighter green or accent -->
+                <corners android:radius="16dp"/>
+            </shape>
+        </clip>
+    </item>
+
+</layer-list>
