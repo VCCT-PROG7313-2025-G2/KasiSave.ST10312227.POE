@@ -10,4 +10,6 @@
     <color name="green_light">#C8E6C9</color>   <!-- Light Green -->
     <color name="green_background">#E8F5E9</color> <!-- Very light green for backgrounds -->
     <color name="bottom_nav_bg">#FFF9C4</color>
+    <color name="red">#FF3B30</color>
+
 </resources>
