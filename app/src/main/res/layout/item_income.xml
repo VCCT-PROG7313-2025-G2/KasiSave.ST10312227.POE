@@ -1,47 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="12dp">
 
     <TextView
-        android:id="@+id/incomeSourceTextView"
-        android:layout_width="0dp"
+        android:id="@+id/itemIncomeAmount"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Source"
+        android:text="R0.00"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/incomeAmountTextView"
-        app:layout_constraintHorizontal_bias="0.0"
-        android:layout_marginTop="8dp" />  <!-- Add marginTop here -->
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <TextView
-        android:id="@+id/incomeAmountTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="R 0.00"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="8dp" />  <!-- Add marginTop here -->
-
-    <!-- Add the category TextView -->
-    <TextView
-        android:id="@+id/incomeCategoryTextView"
-        android:layout_width="wrap_content"
+        android:id="@+id/itemIncomeCategory"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Category"
         android:textSize="16sp"
-        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/itemIncomeAmount"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/incomeSourceTextView"
-        android:layout_marginTop="8dp" />  <!-- Add marginTop here -->
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/itemIncomeDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2025-01-01"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

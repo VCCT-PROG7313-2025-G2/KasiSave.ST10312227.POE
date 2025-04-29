@@ -49,6 +49,7 @@ class DashboardActivity : AppCompatActivity() {
     private fun loadDashboardData() {
         lifecycleScope.launch {
             try {
+                // Fetch total income and expenses (based on categories)
                 val totalIncome = db.incomeDao().getTotalIncome() ?: 0.0
                 val totalExpenses = db.expenseDao().getTotalExpenses() ?: 0.0
                 val totalBalance = totalIncome - totalExpenses

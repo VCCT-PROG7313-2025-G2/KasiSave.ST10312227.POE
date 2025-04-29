@@ -4,41 +4,35 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class IncomeAdapter(
-    private val incomes: List<Income>,
-    private val onDeleteClick: (Income, Int) -> Unit
-) : RecyclerView.Adapter<IncomeAdapter.IncomeViewHolder>() {
-
-    inner class IncomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val sourceTextView: TextView = itemView.findViewById(R.id.incomeSourceTextView)
-        val amountTextView: TextView = itemView.findViewById(R.id.incomeAmountTextView)
-        val categoryTextView: TextView = itemView.findViewById(R.id.incomeCategoryTextView)
-
-        init {
-            itemView.setOnLongClickListener {
-                val pos = adapterPosition
-                if (pos != RecyclerView.NO_POSITION) {
-                    onDeleteClick(incomes[pos], pos)
-                }
-                true
-            }
-        }
-    }
+class IncomeAdapter : ListAdapter<Income, IncomeAdapter.IncomeViewHolder>(IncomeDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IncomeViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_income, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_income, parent, false)
         return IncomeViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: IncomeViewHolder, position: Int) {
-        val income = incomes[position]
-        holder.sourceTextView.text = income.source
-        holder.amountTextView.text = "R ${"%.2f".format(income.amount)}"
-        holder.categoryTextView.text = income.category
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = incomes.size
+    inner class IncomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val amountTextView: TextView = itemView.findViewById(R.id.itemIncomeAmount)
+        private val categoryTextView: TextView = itemView.findViewById(R.id.itemIncomeCategory)
+        private val dateTextView: TextView = itemView.findViewById(R.id.itemIncomeDate)
+
+        fun bind(income: Income) {
+            amountTextView.text = "R${income.amount}"
+            categoryTextView.text = income.category
+            dateTextView.text = income.date
+        }
+    }
+}
+
+class IncomeDiffCallback : DiffUtil.ItemCallback<Income>() {
+    override fun areItemsTheSame(oldItem: Income, newItem: Income): Boolean = oldItem.id == newItem.id
+    override fun areContentsTheSame(oldItem: Income, newItem: Income): Boolean = oldItem == newItem
 }
