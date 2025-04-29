@@ -1,31 +1,36 @@
 package com.example.kasisave
 
+import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ExpensesActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var expensesRecyclerView: RecyclerView
-    private lateinit var editTextExpenseName: EditText
     private lateinit var editTextExpenseAmount: EditText
+    private lateinit var spinnerExpenseCategory: Spinner
+    private lateinit var textViewExpenseDate: TextView
+    private lateinit var switchRecurring: SwitchCompat
     private lateinit var addExpenseButton: FloatingActionButton
     private lateinit var totalExpensesTextView: TextView
 
-    private lateinit var expensesAdapter: ExpensesAdapter
+    private lateinit var expenseAdapter: ExpenseAdapter
     private val expensesList = mutableListOf<Expense>()
 
     private lateinit var db: ExpenseDatabase
+    private var selectedDate: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,23 +39,24 @@ class ExpensesActivity : AppCompatActivity() {
         // Initialize views
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         expensesRecyclerView = findViewById(R.id.expensesRecyclerView)
-        editTextExpenseName = findViewById(R.id.editTextExpenseName)
         editTextExpenseAmount = findViewById(R.id.editTextExpenseAmount)
+        spinnerExpenseCategory = findViewById(R.id.spinnerExpenseCategory)
+        textViewExpenseDate = findViewById(R.id.textViewExpenseDate)
+        switchRecurring = findViewById(R.id.switchRecurring)
         addExpenseButton = findViewById(R.id.addExpenseButton)
         totalExpensesTextView = findViewById(R.id.totalExpensesTextView)
 
         db = ExpenseDatabase.getDatabase(this)
 
         setupBottomNavigation()
+        setupCategorySpinner()
+        setupDatePicker()
 
-        expensesAdapter = ExpensesAdapter(expensesList) { expense, position ->
-            deleteExpense(expense, position)
-        }
+        expenseAdapter = ExpenseAdapter(expensesList)
 
         expensesRecyclerView.layoutManager = LinearLayoutManager(this)
-        expensesRecyclerView.adapter = expensesAdapter
+        expensesRecyclerView.adapter = expenseAdapter
 
-        // Load expenses from database
         loadExpenses()
 
         addExpenseButton.setOnClickListener {
@@ -74,12 +80,38 @@ class ExpensesActivity : AppCompatActivity() {
         bottomNavigationView.selectedItemId = R.id.navigation_expenses
     }
 
+    private fun setupCategorySpinner() {
+        val categories = arrayOf("Food", "Transport", "Bills", "Shopping", "Entertainment", "Other")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerExpenseCategory.adapter = adapter
+    }
+
+    private fun setupDatePicker() {
+        val calendar = Calendar.getInstance()
+        selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        textViewExpenseDate.text = "Date: $selectedDate"
+
+        textViewExpenseDate.setOnClickListener {
+            DatePickerDialog(this,
+                { _, year, month, dayOfMonth ->
+                    val pickedDate = Calendar.getInstance()
+                    pickedDate.set(year, month, dayOfMonth)
+                    selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(pickedDate.time)
+                    textViewExpenseDate.text = "Date: $selectedDate"
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+    }
+
     private fun addExpense() {
-        val name = editTextExpenseName.text.toString().trim()
         val amountText = editTextExpenseAmount.text.toString().trim()
 
-        if (name.isEmpty() || amountText.isEmpty()) {
-            Toast.makeText(this, "Please enter both name and amount", Toast.LENGTH_SHORT).show()
+        if (amountText.isEmpty()) {
+            Toast.makeText(this, "Please enter amount", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -89,17 +121,21 @@ class ExpensesActivity : AppCompatActivity() {
             return
         }
 
-        val expense = Expense(name = name, amount = amount)
+        val category = spinnerExpenseCategory.selectedItem.toString()
+        val isRecurring = switchRecurring.isChecked
 
-        // Save to Room database
+        val expense = Expense(
+            category = category,
+            amount = amount,
+            date = selectedDate,
+            isRecurring = isRecurring
+        )
+
         lifecycleScope.launch {
             db.expenseDao().insertExpense(expense)
             expensesList.add(expense)
-            expensesAdapter.notifyItemInserted(expensesList.size - 1)
+            expenseAdapter.notifyItemInserted(expensesList.size - 1)
             updateTotalExpenses()
-
-            // Clear input fields
-            editTextExpenseName.text.clear()
             editTextExpenseAmount.text.clear()
         }
     }
@@ -108,24 +144,23 @@ class ExpensesActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val loadedExpenses = db.expenseDao().getAllExpenses()
             expensesList.addAll(loadedExpenses)
-            expensesAdapter.notifyDataSetChanged()
+            expenseAdapter.notifyDataSetChanged()
             updateTotalExpenses()
         }
     }
-
-
 
     private fun deleteExpense(expense: Expense, position: Int) {
         lifecycleScope.launch {
             db.expenseDao().deleteExpense(expense)
             expensesList.removeAt(position)
-            expensesAdapter.notifyItemRemoved(position)
+            expenseAdapter.notifyItemRemoved(position)
             updateTotalExpenses()
         }
     }
 
     private fun updateTotalExpenses() {
         val total = expensesList.sumOf { it.amount }
-        totalExpensesTextView.text = "Total: R %.2f".format(total)
+        totalExpensesTextView.text = "Total Expenses: R %.2f".format(total)
     }
 }
+

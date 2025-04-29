@@ -24,6 +24,7 @@ class IncomeActivity : AppCompatActivity() {
     private lateinit var addIncomeButton: FloatingActionButton
     private lateinit var incomeRecyclerView: RecyclerView
     private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var totalIncomeText: TextView  // Added this variable for total income text
 
     private lateinit var db: ExpenseDatabase
     private lateinit var adapter: IncomeAdapter
@@ -44,6 +45,7 @@ class IncomeActivity : AppCompatActivity() {
         addIncomeButton = findViewById(R.id.addIncomeButton)
         incomeRecyclerView = findViewById(R.id.incomeRecyclerView)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
+        totalIncomeText = findViewById(R.id.totalIncomeTextView)
 
         setupCategorySpinner()
         setupDatePicker()
@@ -120,7 +122,7 @@ class IncomeActivity : AppCompatActivity() {
                     amountEditText.text.clear()
                     selectedDateText.text = ""
                     selectedDate = ""
-                    loadIncomeList()
+                    loadIncomeList() // Reload the income list and total income
                 } catch (e: Exception) {
                     Toast.makeText(this@IncomeActivity, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 }
@@ -133,6 +135,10 @@ class IncomeActivity : AppCompatActivity() {
             try {
                 val incomeList = db.incomeDao().getAllIncomes()
                 adapter.submitList(incomeList)
+
+                // Calculate and display total income
+                val totalIncome = incomeList.sumOf { it.amount }
+                totalIncomeText.text = "Total Income: $%.2f".format(totalIncome)  // Display total income
             } catch (e: Exception) {
                 Toast.makeText(this@IncomeActivity, "Failed to load income: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
