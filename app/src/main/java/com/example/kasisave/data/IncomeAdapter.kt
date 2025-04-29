@@ -7,30 +7,38 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class IncomeAdapter(
-    private val incomes: MutableList<Income>,
-    private val onLongClick: (Income, Int) -> Unit
+    private val incomes: List<Income>,
+    private val onDeleteClick: (Income, Int) -> Unit
 ) : RecyclerView.Adapter<IncomeAdapter.IncomeViewHolder>() {
 
     inner class IncomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val incomeSource: TextView = itemView.findViewById(R.id.incomeSourceTextView)
-        val incomeAmount: TextView = itemView.findViewById(R.id.incomeAmountTextView)
+        val sourceTextView: TextView = itemView.findViewById(R.id.incomeSourceTextView)
+        val amountTextView: TextView = itemView.findViewById(R.id.incomeAmountTextView)
+        val categoryTextView: TextView = itemView.findViewById(R.id.incomeCategoryTextView)
+
+        init {
+            itemView.setOnLongClickListener {
+                val pos = adapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    onDeleteClick(incomes[pos], pos)
+                }
+                true
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IncomeViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_income, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_income, parent, false)
         return IncomeViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: IncomeViewHolder, position: Int) {
         val income = incomes[position]
-        holder.incomeSource.text = income.source
-        holder.incomeAmount.text = "R ${income.amount}"
-
-        holder.itemView.setOnLongClickListener {
-            onLongClick(income, position)
-            true
-        }
+        holder.sourceTextView.text = income.source
+        holder.amountTextView.text = "R ${"%.2f".format(income.amount)}"
+        holder.categoryTextView.text = income.category
     }
 
-    override fun getItemCount() = incomes.size
+    override fun getItemCount(): Int = incomes.size
 }

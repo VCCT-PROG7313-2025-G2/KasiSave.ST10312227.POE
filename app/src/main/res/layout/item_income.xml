@@ -17,7 +17,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/incomeAmountTextView"
-        app:layout_constraintHorizontal_bias="0.0" />
+        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_marginTop="8dp" />  <!-- Add marginTop here -->
 
     <TextView
         android:id="@+id/incomeAmountTextView"
@@ -28,6 +29,19 @@
         android:textStyle="bold"
         android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />  <!-- Add marginTop here -->
+
+    <!-- Add the category TextView -->
+    <TextView
+        android:id="@+id/incomeCategoryTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/incomeSourceTextView"
+        android:layout_marginTop="8dp" />  <!-- Add marginTop here -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

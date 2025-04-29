@@ -7,5 +7,7 @@ import androidx.room.PrimaryKey
 data class Income(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val source: String,
-    val amount: Double
+    val amount: Double,
+    val category: String,
+    val isRecurring: Boolean 
 )

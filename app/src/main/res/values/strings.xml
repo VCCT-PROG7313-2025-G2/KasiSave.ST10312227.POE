@@ -4,4 +4,12 @@
     <string name="title_income">Income</string>
 <string name="title_milestones">Milestones</string>
 <string name="title_expenses">Expenses</string>
+    <string-array name="income_categories">
+        <item>Salary</item>
+        <item>Bonus</item>
+        <item>Freelance</item>
+        <item>Investment</item>
+        <item>Gift</item>
+        <item>Other</item>
+    </string-array>
 </resources>

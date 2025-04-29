@@ -55,6 +55,9 @@ dependencies {
 
     implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
+    implementation ("com.google.android.material:material:1.4.0")
+    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
+
     val roomVersion = "2.5.0"
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
