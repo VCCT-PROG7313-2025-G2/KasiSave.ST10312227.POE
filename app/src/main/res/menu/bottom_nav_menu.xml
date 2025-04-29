@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Dashboard Item -->
     <item
         android:id="@+id/navigation_dashboard"
         android:icon="@drawable/home_icon"
         android:title="@string/title_dashboard" />
 
+    <!-- Income Item -->
     <item
-        android:id="@+id/navigation_milestones"
+        android:id="@+id/navigation_income"
         android:icon="@drawable/income_icon"
-        android:title="@string/title_milestones" />
+        android:title="@string/title_income" />
 
+    <!-- Expenses Item -->
     <item
         android:id="@+id/navigation_expenses"
         android:icon="@drawable/expense_icon"
         android:title="@string/title_expenses" />
+
+    <!-- Milestones Item -->
+    <item
+        android:id="@+id/navigation_milestones"
+        android:icon="@drawable/milestone_icon"
+        android:title="@string/title_milestones" />
 
 </menu>

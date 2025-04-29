@@ -1,74 +1,99 @@
 package com.example.kasisave
 
+import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DashboardActivity : AppCompatActivity() {
 
     private lateinit var budgetProgressBar: ProgressBar
     private lateinit var expenseProgressBar: ProgressBar
-    private lateinit var milestoneProgressBar: ProgressBar
-
     private lateinit var budgetPercentText: TextView
     private lateinit var expensePercentText: TextView
-    private lateinit var milestonePercentText: TextView
     private lateinit var totalBalanceText: TextView
-
-    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var db: ExpenseDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
+        // Initialize views
         budgetProgressBar = findViewById(R.id.budgetProgressBar)
         expenseProgressBar = findViewById(R.id.expenseProgressBar)
-        milestoneProgressBar = findViewById(R.id.milestoneProgressBar)
-
         budgetPercentText = findViewById(R.id.budgetPercentText)
         expensePercentText = findViewById(R.id.expensePercentText)
-        milestonePercentText = findViewById(R.id.milestonePercentText)
-
         totalBalanceText = findViewById(R.id.totalBalanceAmount)
+        bottomNavigationView = findViewById(R.id.bottomNavigationView)
 
-        // Example dynamic values
-        val totalBalance = 25000.0
-        val budgetGoal = 20000.0
-        val currentBudget = 15000.0
+        db = ExpenseDatabase.getDatabase(this)
 
-        val expenseLimit = 15000.0
-        val currentExpense = 5000.0
-
-        val milestoneTarget = 500.0
-        val currentMilestone = 300.0
-
-        totalBalanceText.text = "R$totalBalance"
-
-        // Calculate percentages
-        val budgetPercent = ((currentBudget / budgetGoal) * 100).toInt()
-        val expensePercent = ((currentExpense / expenseLimit) * 100).toInt()
-        val milestonePercent = ((currentMilestone / milestoneTarget) * 100).toInt()
-
-        animateProgress(budgetProgressBar, budgetPercent, budgetPercentText)
-        animateProgress(expenseProgressBar, expensePercent, expensePercentText)
-        animateProgress(milestoneProgressBar, milestonePercent, milestonePercentText)
+        setupBottomNavigation()
+        loadDashboardData()
     }
 
-    private fun animateProgress(progressBar: ProgressBar, targetProgress: Int, percentText: TextView) {
-        Thread {
-            var progress = 0
-            while (progress <= targetProgress) {
-                val current = progress
-                handler.post {
-                    progressBar.progress = current
-                    percentText.text = "$current%"
-                }
-                progress++
-                Thread.sleep(15) // control speed of animation
+    private fun loadDashboardData() {
+        lifecycleScope.launch {
+            try {
+                val totalIncome = db.incomeDao().getTotalIncome() ?: 0.0
+                val totalExpenses = db.expenseDao().getTotalExpenses() ?: 0.0
+
+                val totalBalance = totalIncome - totalExpenses
+                totalBalanceText.text = "R${"%.2f".format(totalBalance)}"
+
+                val budgetPercent = if (totalIncome > 0) 100 else 0
+                val expensePercent = if (totalIncome > 0)
+                    ((totalExpenses / totalIncome) * 100).coerceAtMost(100.0).toInt()
+                else 0
+
+                animateProgress(budgetProgressBar, budgetPercent, budgetPercentText)
+                animateProgress(expenseProgressBar, expensePercent, expensePercentText)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                totalBalanceText.text = "Error loading data"
             }
-        }.start()
+        }
+    }
+
+
+    private suspend fun animateProgress(
+        progressBar: ProgressBar,
+        targetProgress: Int,
+        percentText: TextView
+    ) {
+        for (progress in 0..targetProgress) {
+            progressBar.progress = progress
+            percentText.text = "$progress%"
+            delay(15)
+        }
+    }
+
+    private fun setupBottomNavigation() {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_dashboard -> true
+                R.id.navigation_expenses -> {
+                    startActivity(Intent(this, ExpensesActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_income -> {
+                    startActivity(Intent(this, IncomeActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                else -> false
+            }
+        }
     }
 }
