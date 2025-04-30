@@ -1,53 +1,49 @@
 package com.example.kasisave
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 
-class ExpenseAdapter(private val expenses: List<Expense>) : RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
+class ExpenseAdapter(private val expenses: List<Expense>) :
+    RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
+
+    class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val categoryTextView: TextView = itemView.findViewById(R.id.textViewCategory)
+        val amountTextView: TextView = itemView.findViewById(R.id.textViewAmount)
+        val dateTextView: TextView = itemView.findViewById(R.id.textViewDate)
+        val descriptionTextView: TextView = itemView.findViewById(R.id.textViewDescription)
+        val timeTextView: TextView = itemView.findViewById(R.id.textViewTime)
+        val recurringTextView: TextView = itemView.findViewById(R.id.textViewRecurring)
+        val photoImageView: ImageView = itemView.findViewById(R.id.imageViewPhoto)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_expense, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_expense, parent, false)
         return ExpenseViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
+        holder.categoryTextView.text = "Category: ${expense.category}"
+        holder.amountTextView.text = "Amount: R %.2f".format(expense.amount)
+        holder.dateTextView.text = "Date: ${expense.date}"
+        holder.descriptionTextView.text = "Description: ${expense.description}"
+        holder.timeTextView.text = "Time: ${expense.startTime} - ${expense.endTime}"
+        holder.recurringTextView.text = if (expense.isRecurring) "Recurring: Yes" else "Recurring: No"
 
-        holder.categoryTextView.text = expense.category
-        holder.amountTextView.text = "R ${"%.2f".format(expense.amount)}"
-        holder.dateTextView.text = expense.date
-        holder.timeTextView.text = "From: ${expense.startTime} to ${expense.endTime}"
-        holder.descriptionTextView.text = expense.description ?: "No description"
-
-        // If photo is present, show it
-        if (expense.photoUri != null) {
-            Glide.with(holder.photoImageView.context)
-                .load(expense.photoUri)
-                .into(holder.photoImageView)
+        // Show photo if available
+        if (!expense.photoUri.isNullOrEmpty()) {
+            holder.photoImageView.visibility = View.VISIBLE
+            holder.photoImageView.setImageURI(Uri.parse(expense.photoUri))
         } else {
             holder.photoImageView.visibility = View.GONE
         }
-
-        // Show recurring status
-        holder.recurringTextView.text = if (expense.isRecurring) "Recurring" else "One-time"
     }
 
-    override fun getItemCount(): Int {
-        return expenses.size
-    }
-
-    class ExpenseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val categoryTextView: TextView = view.findViewById(R.id.textViewCategory)
-        val amountTextView: TextView = view.findViewById(R.id.textViewAmount)
-        val dateTextView: TextView = view.findViewById(R.id.textViewDate)
-        val timeTextView: TextView = view.findViewById(R.id.textViewTime)
-        val descriptionTextView: TextView = view.findViewById(R.id.textViewDescription)
-        val photoImageView: ImageView = view.findViewById(R.id.imageViewPhoto)
-        val recurringTextView: TextView = view.findViewById(R.id.textViewRecurring)
-    }
+    override fun getItemCount(): Int = expenses.size
 }
