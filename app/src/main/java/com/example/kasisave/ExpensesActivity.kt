@@ -1,9 +1,13 @@
 package com.example.kasisave
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.lifecycleScope
@@ -25,12 +29,27 @@ class ExpensesActivity : AppCompatActivity() {
     private lateinit var switchRecurring: SwitchCompat
     private lateinit var addExpenseButton: FloatingActionButton
     private lateinit var totalExpensesTextView: TextView
+    private lateinit var editTextDescription: EditText
+    private lateinit var textViewStartTime: TextView
+    private lateinit var textViewEndTime: TextView
+    private lateinit var imageViewPhoto: ImageView
+    private lateinit var buttonAttachPhoto: Button
 
     private lateinit var expenseAdapter: ExpenseAdapter
     private val expensesList = mutableListOf<Expense>()
 
     private lateinit var db: ExpenseDatabase
     private var selectedDate: String = ""
+    private var startTime: String = ""
+    private var endTime: String = ""
+    private var photoUri: String? = null
+
+    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            photoUri = it.toString()
+            imageViewPhoto.setImageURI(it)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,12 +64,18 @@ class ExpensesActivity : AppCompatActivity() {
         switchRecurring = findViewById(R.id.switchRecurring)
         addExpenseButton = findViewById(R.id.addExpenseButton)
         totalExpensesTextView = findViewById(R.id.totalExpensesTextView)
+        editTextDescription = findViewById(R.id.editTextDescription)
+        textViewStartTime = findViewById(R.id.textViewStartTime)
+        textViewEndTime = findViewById(R.id.textViewEndTime)
+        imageViewPhoto = findViewById(R.id.imageViewPhoto)
+        buttonAttachPhoto = findViewById(R.id.buttonAttachPhoto)
 
         db = ExpenseDatabase.getDatabase(this)
 
         setupBottomNavigation()
         setupCategorySpinner()
         setupDatePicker()
+        setupTimePickers()
 
         expenseAdapter = ExpenseAdapter(expensesList)
 
@@ -58,6 +83,10 @@ class ExpensesActivity : AppCompatActivity() {
         expensesRecyclerView.adapter = expenseAdapter
 
         loadExpenses()
+
+        buttonAttachPhoto.setOnClickListener {
+            imagePickerLauncher.launch("image/*")
+        }
 
         addExpenseButton.setOnClickListener {
             addExpense()
@@ -107,8 +136,27 @@ class ExpensesActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupTimePickers() {
+        textViewStartTime.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            TimePickerDialog(this, { _, hour, minute ->
+                startTime = String.format("%02d:%02d", hour, minute)
+                textViewStartTime.text = "Start: $startTime"
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
+        }
+
+        textViewEndTime.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            TimePickerDialog(this, { _, hour, minute ->
+                endTime = String.format("%02d:%02d", hour, minute)
+                textViewEndTime.text = "End: $endTime"
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
+        }
+    }
+
     private fun addExpense() {
         val amountText = editTextExpenseAmount.text.toString().trim()
+        val description = editTextDescription.text.toString().trim()
 
         if (amountText.isEmpty()) {
             Toast.makeText(this, "Please enter amount", Toast.LENGTH_SHORT).show()
@@ -128,7 +176,11 @@ class ExpensesActivity : AppCompatActivity() {
             category = category,
             amount = amount,
             date = selectedDate,
-            isRecurring = isRecurring
+            isRecurring = isRecurring,
+            description = description,
+            startTime = startTime,
+            endTime = endTime,
+            photoUri = photoUri
         )
 
         lifecycleScope.launch {
@@ -136,8 +188,17 @@ class ExpensesActivity : AppCompatActivity() {
             expensesList.add(expense)
             expenseAdapter.notifyItemInserted(expensesList.size - 1)
             updateTotalExpenses()
-            editTextExpenseAmount.text.clear()
+            resetFields()
         }
+    }
+
+    private fun resetFields() {
+        editTextExpenseAmount.text.clear()
+        editTextDescription.text.clear()
+        textViewStartTime.text = "Start time"
+        textViewEndTime.text = "End time"
+        imageViewPhoto.setImageResource(R.drawable.placeholder_icon)
+        photoUri = null
     }
 
     private fun loadExpenses() {

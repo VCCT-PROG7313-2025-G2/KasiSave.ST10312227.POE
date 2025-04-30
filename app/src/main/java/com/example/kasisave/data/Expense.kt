@@ -6,9 +6,13 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "expenses")
 data class Expense(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val amount: Double,
     val category: String,
+    val amount: Double,
     val date: String,
+    val startTime: String? = null,
+    val endTime: String? = null,
+    val description: String? = null,
+    val photoUri: String? = null,
     val isRecurring: Boolean
 )
 

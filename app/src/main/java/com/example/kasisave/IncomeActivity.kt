@@ -24,7 +24,7 @@ class IncomeActivity : AppCompatActivity() {
     private lateinit var addIncomeButton: FloatingActionButton
     private lateinit var incomeRecyclerView: RecyclerView
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var totalIncomeText: TextView  // Added this variable for total income text
+    private lateinit var totalIncomeText: TextView
 
     private lateinit var db: ExpenseDatabase
     private lateinit var adapter: IncomeAdapter
@@ -54,7 +54,7 @@ class IncomeActivity : AppCompatActivity() {
         setupBottomNavigation()
         loadIncomeList()
 
-        // Highlight the current nav item
+
         bottomNavigationView.selectedItemId = R.id.navigation_income
     }
 
