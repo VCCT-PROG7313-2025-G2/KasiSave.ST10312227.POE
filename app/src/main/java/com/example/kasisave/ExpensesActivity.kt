@@ -1,8 +1,10 @@
 package com.example.kasisave
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -10,12 +12,15 @@ import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -43,11 +48,17 @@ class ExpensesActivity : AppCompatActivity() {
     private var startTime: String = ""
     private var endTime: String = ""
     private var photoUri: String? = null
+    private var photoFile: File? = null
 
-    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            photoUri = it.toString()
-            imageViewPhoto.setImageURI(it)
+    companion object {
+        private const val REQUEST_IMAGE_CAPTURE = 1
+    }
+
+
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            photoUri = Uri.fromFile(photoFile).toString()
+            imageViewPhoto.setImageURI(Uri.fromFile(photoFile))
         }
     }
 
@@ -67,8 +78,8 @@ class ExpensesActivity : AppCompatActivity() {
         editTextDescription = findViewById(R.id.editTextDescription)
         textViewStartTime = findViewById(R.id.textViewStartTime)
         textViewEndTime = findViewById(R.id.textViewEndTime)
-        imageViewPhoto = findViewById(R.id.imageViewPhoto)
-        buttonAttachPhoto = findViewById(R.id.buttonAttachPhoto)
+        imageViewPhoto = findViewById(R.id.imageViewReceipt)
+        buttonAttachPhoto = findViewById(R.id.buttonTakePhoto)
 
         db = ExpenseDatabase.getDatabase(this)
 
@@ -78,20 +89,47 @@ class ExpensesActivity : AppCompatActivity() {
         setupTimePickers()
 
         expenseAdapter = ExpenseAdapter(expensesList)
-
         expensesRecyclerView.layoutManager = LinearLayoutManager(this)
         expensesRecyclerView.adapter = expenseAdapter
 
         loadExpenses()
 
         buttonAttachPhoto.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show()
+            }
         }
+
 
         addExpenseButton.setOnClickListener {
             addExpense()
         }
     }
+
+    private fun openCamera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (intent.resolveActivity(packageManager) != null) {
+            // Create the temporary file in external cache
+            photoFile = File.createTempFile("expense_photo_", ".jpg", externalCacheDir)
+
+            // Get URI using the correct authority (must match manifest)
+            val photoURI: Uri = FileProvider.getUriForFile(
+                this,
+                "com.example.kasisave.fileprovider",
+                photoFile!!
+            )
+
+            photoUri = photoURI.toString() // Optional: store as string
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+        }
+    }
+
+
 
     private fun setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener { item ->
@@ -197,6 +235,11 @@ class ExpensesActivity : AppCompatActivity() {
         editTextDescription.text.clear()
         textViewStartTime.text = "Start time"
         textViewEndTime.text = "End time"
+        startTime = ""
+        endTime = ""
+        val calendar = Calendar.getInstance()
+        selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        textViewExpenseDate.text = "Date: $selectedDate"
         imageViewPhoto.setImageResource(R.drawable.placeholder_icon)
         photoUri = null
     }
@@ -210,6 +253,11 @@ class ExpensesActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateTotalExpenses() {
+        val total = expensesList.sumOf { it.amount }
+        totalExpensesTextView.text = "Total: R %.2f".format(total)
+    }
+
     private fun deleteExpense(expense: Expense, position: Int) {
         lifecycleScope.launch {
             db.expenseDao().deleteExpense(expense)
@@ -217,11 +265,6 @@ class ExpensesActivity : AppCompatActivity() {
             expenseAdapter.notifyItemRemoved(position)
             updateTotalExpenses()
         }
-    }
-
-    private fun updateTotalExpenses() {
-        val total = expensesList.sumOf { it.amount }
-        totalExpensesTextView.text = "Total Expenses: R %.2f".format(total)
     }
 }
 

@@ -13,8 +13,9 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import java.util.Calendar
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -49,16 +50,22 @@ class DashboardActivity : AppCompatActivity() {
     private fun loadDashboardData() {
         lifecycleScope.launch {
             try {
-                // Fetch total income and expenses (based on categories)
                 val totalIncome = db.incomeDao().getTotalIncome() ?: 0.0
                 val totalExpenses = db.expenseDao().getTotalExpenses() ?: 0.0
                 val totalBalance = totalIncome - totalExpenses
 
                 totalBalanceText.text = "R${"%.2f".format(totalBalance)}"
 
-                val budgetPercent = if (totalIncome > 0) 100 else 0
-                val expensePercent = if (totalIncome > 0) {
-                    ((totalExpenses / totalIncome) * 100).coerceAtMost(100.0).toInt()
+                val calendar = Calendar.getInstance()
+                val month = (calendar.get(Calendar.MONTH) + 1).toString()
+                val year = calendar.get(Calendar.YEAR)
+                val currentGoal = db.goalDao().getGoalForMonth(month, year)
+
+                val baseBudget = currentGoal?.minGoal ?: totalIncome
+
+                val budgetPercent = if (baseBudget > 0) 100 else 0
+                val expensePercent = if (baseBudget > 0) {
+                    ((totalExpenses / baseBudget) * 100).coerceAtMost(100.0).toInt()
                 } else {
                     0
                 }
@@ -130,6 +137,12 @@ class DashboardActivity : AppCompatActivity() {
                 }
                 R.id.navigation_income -> {
                     startActivity(Intent(this, IncomeActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_milestones -> {
+                    startActivity(Intent(this, MilestonesActivity::class.java))
                     overridePendingTransition(0, 0)
                     finish()
                     true

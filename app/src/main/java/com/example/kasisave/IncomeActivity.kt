@@ -164,6 +164,12 @@ class IncomeActivity : AppCompatActivity() {
                     // Already in IncomeActivity, no need to do anything
                     true
                 }
+                R.id.navigation_milestones -> {
+                    startActivity(Intent(this, MilestonesActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
                 else -> false
             }
         }
