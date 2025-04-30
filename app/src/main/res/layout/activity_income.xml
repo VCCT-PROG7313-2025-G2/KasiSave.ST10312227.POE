@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/backround_colour"
     tools:context=".IncomeActivity">
 
     <!-- Title -->
@@ -12,42 +12,42 @@
         android:id="@+id/incomeTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:text="Income"
+        android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Total Income Text -->
     <TextView
         android:id="@+id/totalIncomeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Total Income: R0.00"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
         android:layout_marginStart="24dp"
         android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/incomeTitle"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:text="Total Income: R0.00"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/incomeTitle" />
 
     <!-- Income Amount Input -->
     <EditText
         android:id="@+id/amountEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="24dp"
         android:hint="Income Amount"
         android:inputType="numberDecimal"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/totalIncomeTextView"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/totalIncomeTextView" />
 
     <!-- Income Category Spinner -->
     <Spinner
@@ -56,44 +56,44 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:spinnerMode="dropdown"
-        app:layout_constraintTop_toBottomOf="@id/amountEditText"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/amountEditText" />
 
     <!-- Recurring Income Checkbox -->
     <CheckBox
         android:id="@+id/recurringCheckBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Recurring Income"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/categorySpinner"
+        android:text="Recurring Income"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/categorySpinner" />
 
     <!-- Date Picker Button -->
     <Button
         android:id="@+id/dateButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Date"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/recurringCheckBox"
+        android:text="Select Date"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/recurringCheckBox" />
 
     <!-- Selected Date Text -->
     <TextView
         android:id="@+id/selectedDateText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No date selected"
-        android:textSize="14sp"
-        android:textColor="@color/black"
         android:layout_marginTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/dateButton"
+        android:text="No date selected"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/dateButton" />
 
     <!-- RecyclerView for Income Entries -->
     <androidx.recyclerview.widget.RecyclerView
@@ -101,10 +101,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/selectedDateText"
         app:layout_constraintBottom_toTopOf="@id/addIncomeButton"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/selectedDateText"
         tools:listitem="@layout/item_income" />
 
     <!-- Floating Add Income Button -->
@@ -112,13 +112,13 @@
         android:id="@+id/addIncomeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="Add Income"
-        app:srcCompat="@drawable/add_icon"
-        app:tint="@color/white"
-        android:backgroundTint="@color/green_primary"
         android:layout_margin="24dp"
+        android:backgroundTint="@color/green_primary"
+        android:contentDescription="Add Income"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/add_icon"
+        app:tint="@color/white" />
 
     <!-- Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -126,10 +126,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="?android:attr/windowBackground"
-        app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -59,9 +59,11 @@ class DashboardActivity : AppCompatActivity() {
                 val calendar = Calendar.getInstance()
                 val month = (calendar.get(Calendar.MONTH) + 1).toString()
                 val year = calendar.get(Calendar.YEAR)
-                val currentGoal = db.goalDao().getGoalForMonth(month, year)
 
-                val baseBudget = currentGoal?.minGoal ?: totalIncome
+                // Fetching the milestone data for the current month and year
+                val currentMilestone = db.milestoneDao().getMilestoneForMonth(month, year)
+
+                val baseBudget = currentMilestone?.targetAmount ?: totalIncome
 
                 val budgetPercent = if (baseBudget > 0) 100 else 0
                 val expensePercent = if (baseBudget > 0) {
@@ -81,6 +83,7 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
     }
+
 
     private suspend fun animateProgress(
         progressBar: ProgressBar,

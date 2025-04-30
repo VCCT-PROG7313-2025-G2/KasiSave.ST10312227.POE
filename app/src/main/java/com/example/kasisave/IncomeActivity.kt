@@ -161,7 +161,7 @@ class IncomeActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_income -> {
-                    // Already in IncomeActivity, no need to do anything
+
                     true
                 }
                 R.id.navigation_milestones -> {

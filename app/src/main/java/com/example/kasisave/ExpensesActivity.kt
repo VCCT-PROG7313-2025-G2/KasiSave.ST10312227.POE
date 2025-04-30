@@ -197,6 +197,18 @@ class ExpensesActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_expenses -> true
+                R.id.navigation_income -> {
+                    startActivity(Intent(this, IncomeActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_milestones -> {
+                    startActivity(Intent(this, MilestonesActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
                 else -> false
             }
         }
