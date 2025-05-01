@@ -9,7 +9,10 @@ import androidx.room.Delete
 interface ExpenseDao {
 
     @Insert
-    suspend fun insertExpense(expense: Expense)
+    suspend fun insert(expense: Expense)
+
+    @Query("SELECT * FROM expenses WHERE category = :category")
+    suspend fun getExpensesByCategory(category: String): List<Expense>
 
     @Query("SELECT * FROM expenses")
     suspend fun getAllExpenses(): List<Expense>

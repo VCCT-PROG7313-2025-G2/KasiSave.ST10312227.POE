@@ -13,6 +13,6 @@ data class Expense(
     val endTime: String? = null,
     val description: String? = null,
     val photoUri: String? = null,
-    val isRecurring: Boolean
+    val isRecurring: Boolean = false
 )
 

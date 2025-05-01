@@ -8,7 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class ExpenseAdapter(private val expenses: List<Expense>) :
+class ExpenseAdapter(private var expenses: List<Expense>) :
     RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
 
     class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -46,4 +46,9 @@ class ExpenseAdapter(private val expenses: List<Expense>) :
     }
 
     override fun getItemCount(): Int = expenses.size
+
+    fun updateData(newExpenses: List<Expense>) {
+        expenses = newExpenses
+        notifyDataSetChanged()
+    }
 }

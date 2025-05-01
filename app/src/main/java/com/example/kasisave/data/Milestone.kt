@@ -8,5 +8,7 @@ data class Milestone(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val targetAmount: Double,
-    val deadline: String
+    val deadline: String,
+    val minMonthlySpend: Double,
+    val maxMonthlySpend: Double
 )

@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.kasisave.Milestone
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
 
@@ -19,6 +20,8 @@ class MilestonesActivity : AppCompatActivity() {
     private lateinit var editTextGoalName: EditText
     private lateinit var editTextTargetAmount: EditText
     private lateinit var editTextDeadline: EditText
+    private lateinit var editTextMinSpend: EditText
+    private lateinit var editTextMaxSpend: EditText
     private lateinit var buttonAddMilestone: Button
     private lateinit var bottomNavigationView: BottomNavigationView
 
@@ -35,8 +38,9 @@ class MilestonesActivity : AppCompatActivity() {
         editTextGoalName = findViewById(R.id.editTextGoalName)
         editTextTargetAmount = findViewById(R.id.editTextTargetAmount)
         editTextDeadline = findViewById(R.id.editTextDeadline)
+        editTextMinSpend = findViewById(R.id.minSpendText)
+        editTextMaxSpend = findViewById(R.id.maxSpendText)
         buttonAddMilestone = findViewById(R.id.buttonAddMilestone)
-
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
 
         db = ExpenseDatabase.getDatabase(this)
@@ -50,6 +54,7 @@ class MilestonesActivity : AppCompatActivity() {
         buttonAddMilestone.setOnClickListener {
             addMilestone()
         }
+
         setupBottomNavigation()
     }
 
@@ -63,13 +68,14 @@ class MilestonesActivity : AppCompatActivity() {
         }
     }
 
-
     private fun addMilestone() {
         val goalName = editTextGoalName.text.toString().trim()
         val targetAmount = editTextTargetAmount.text.toString().toDoubleOrNull()
         val deadline = editTextDeadline.text.toString().trim()
+        val minSpend = editTextMinSpend.text.toString().toDoubleOrNull()
+        val maxSpend = editTextMaxSpend.text.toString().toDoubleOrNull()
 
-        if (goalName.isEmpty() || targetAmount == null || deadline.isEmpty()) {
+        if (goalName.isEmpty() || targetAmount == null || deadline.isEmpty() || minSpend == null || maxSpend == null) {
             Toast.makeText(this, "Fill in all fields correctly", Toast.LENGTH_SHORT).show()
             return
         }
@@ -77,7 +83,9 @@ class MilestonesActivity : AppCompatActivity() {
         val milestone = Milestone(
             name = goalName,
             targetAmount = targetAmount,
-            deadline = deadline
+            deadline = deadline,
+            minMonthlySpend = minSpend,
+            maxMonthlySpend = maxSpend
         )
 
         lifecycleScope.launch {
@@ -92,9 +100,10 @@ class MilestonesActivity : AppCompatActivity() {
         editTextGoalName.text.clear()
         editTextTargetAmount.text.clear()
         editTextDeadline.text.clear()
+        editTextMinSpend.text.clear()
+        editTextMaxSpend.text.clear()
     }
 
-    // Simple adapter for milestones
     class MilestoneAdapter(private val items: List<Milestone>) :
         RecyclerView.Adapter<MilestoneAdapter.MilestoneViewHolder>() {
 
@@ -102,6 +111,8 @@ class MilestonesActivity : AppCompatActivity() {
             val goalName: TextView = view.findViewById(R.id.textGoalName)
             val targetAmount: TextView = view.findViewById(R.id.textTargetAmount)
             val deadline: TextView = view.findViewById(R.id.textDeadline)
+            val minSpend: TextView = view.findViewById(R.id.minSpendText)
+            val maxSpend: TextView = view.findViewById(R.id.maxSpendText)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MilestoneViewHolder {
@@ -115,10 +126,13 @@ class MilestonesActivity : AppCompatActivity() {
             holder.goalName.text = item.name
             holder.targetAmount.text = "Target: R %.2f".format(item.targetAmount)
             holder.deadline.text = "Deadline: ${item.deadline}"
+            holder.minSpend.text = "Min Monthly Spend: R %.2f".format(item.minMonthlySpend)
+            holder.maxSpend.text = "Max Monthly Spend: R %.2f".format(item.maxMonthlySpend)
         }
 
         override fun getItemCount() = items.size
     }
+
     private fun setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -140,14 +154,10 @@ class MilestonesActivity : AppCompatActivity() {
                     finish()
                     true
                 }
-                R.id.navigation_milestones -> {
-
-                    true
-                }
+                R.id.navigation_milestones -> true
                 else -> false
             }
         }
     }
-
 }
 

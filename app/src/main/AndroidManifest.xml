@@ -35,6 +35,8 @@
         <activity android:name=".IncomeActivity"/>
         <activity android:name=".MilestonesActivity"/>
         <activity android:name=".DashboardActivity"/>
+        <activity android:name=".activities.FindExpenseByCategoryActivity"/>
+        <activity android:name=".activities.AddExpenseActivity"/>
 
         <meta-data
             android:name="preloaded_fonts"
