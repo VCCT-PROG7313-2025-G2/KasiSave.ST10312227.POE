@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.kasisave.Expense
 import com.example.kasisave.ExpenseAdapter
 import com.example.kasisave.ExpenseDatabase
 import com.example.kasisave.R

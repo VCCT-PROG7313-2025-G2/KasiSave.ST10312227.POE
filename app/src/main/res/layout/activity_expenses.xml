@@ -30,6 +30,14 @@
         android:layout_marginBottom="60dp" />
 
     <Button
+        android:id="@+id/btnSearchByDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search Expenses By Date"
+        android:layout_above="@id/btnSearchByCategory"
+        android:layout_margin="16dp" />
+
+    <Button
         android:id="@+id/btnSearchByCategory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -42,7 +50,7 @@
         android:id="@+id/totalExpensesTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/btnSearchByCategory"
+        android:layout_above="@id/btnSearchByDate"
         android:layout_alignParentStart="true"
         android:layout_margin="16dp"
         android:text="Total: R 0.00"

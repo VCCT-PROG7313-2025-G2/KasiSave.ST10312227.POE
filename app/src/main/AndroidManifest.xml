@@ -37,6 +37,7 @@
         <activity android:name=".DashboardActivity"/>
         <activity android:name=".activities.FindExpenseByCategoryActivity"/>
         <activity android:name=".activities.AddExpenseActivity"/>
+        <activity android:name=".SearchExpenseByDateActivity"/>
 
         <meta-data
             android:name="preloaded_fonts"

@@ -7,9 +7,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ExpenseAdapter(private var expenses: List<Expense>) :
     RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
+
+    // Date formatter for displaying the timestamp
+    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val categoryTextView: TextView = itemView.findViewById(R.id.textViewCategory)
@@ -29,9 +34,12 @@ class ExpenseAdapter(private var expenses: List<Expense>) :
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
+
+        // Set the formatted date
+        val formattedDate = dateFormatter.format(Date(expense.date))
         holder.categoryTextView.text = "Category: ${expense.category}"
         holder.amountTextView.text = "Amount: R %.2f".format(expense.amount)
-        holder.dateTextView.text = "Date: ${expense.date}"
+        holder.dateTextView.text = "Date: $formattedDate"
         holder.descriptionTextView.text = "Description: ${expense.description}"
         holder.timeTextView.text = "Time: ${expense.startTime} - ${expense.endTime}"
         holder.recurringTextView.text = if (expense.isRecurring) "Recurring: Yes" else "Recurring: No"
@@ -47,7 +55,24 @@ class ExpenseAdapter(private var expenses: List<Expense>) :
 
     override fun getItemCount(): Int = expenses.size
 
+    // Update the list of expenses in the adapter
     fun updateData(newExpenses: List<Expense>) {
+        expenses = newExpenses
+        notifyDataSetChanged()
+    }
+
+    // Method to filter expenses based on a date range (startDate and endDate in milliseconds)
+    fun filterExpensesByDate(startDate: Long, endDate: Long) {
+        val filteredExpenses = expenses.filter {
+            val expenseDate = it.date
+            expenseDate >= startDate && expenseDate <= endDate
+        }
+        expenses = filteredExpenses
+        notifyDataSetChanged()
+    }
+
+    // Optionally, set expenses directly if needed
+    fun setExpenses(newExpenses: List<Expense>) {
         expenses = newExpenses
         notifyDataSetChanged()
     }

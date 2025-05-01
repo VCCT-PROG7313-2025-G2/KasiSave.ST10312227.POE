@@ -21,6 +21,7 @@ import com.example.kasisave.ExpenseDatabase
 import com.example.kasisave.R
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AddExpenseActivity : AppCompatActivity() {
@@ -145,7 +146,11 @@ class AddExpenseActivity : AppCompatActivity() {
     }
 
     private fun saveExpense() {
-        val date = dateEditText.text.toString()
+        val dateString = dateEditText.text.toString()
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val parsedDate = formatter.parse(dateString)
+        val date = parsedDate?.time ?: System.currentTimeMillis()
+
         val startTime = startTimeEditText.text?.toString()?.takeIf { it.isNotBlank() }
         val endTime = endTimeEditText.text?.toString()?.takeIf { it.isNotBlank() }
         val description = descriptionEditText.text?.toString()?.takeIf { it.isNotBlank() }
@@ -155,7 +160,7 @@ class AddExpenseActivity : AppCompatActivity() {
         val photoUriString = photoUri?.toString()
         val isRecurring = recurringCheckBox.isChecked
 
-        if (date.isEmpty() || amountText.isEmpty() || category.isEmpty()) {
+        if (dateString.isEmpty() || amountText.isEmpty() || category.isEmpty()) {
             Toast.makeText(this, "Please fill in required fields: Date, Category, and Amount.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -174,7 +179,7 @@ class AddExpenseActivity : AppCompatActivity() {
             amount = amount,
             category = category,
             photoUri = photoUriString,
-            isRecurring = isRecurring,
+            isRecurring = isRecurring
         )
 
         lifecycleScope.launch {
