@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +20,7 @@ class FindExpenseByCategoryActivity : AppCompatActivity() {
     private lateinit var categorySpinner: Spinner
     private lateinit var findButton: Button
     private lateinit var expensesRecyclerView: RecyclerView
+    private lateinit var totalCostTextView: TextView
     private lateinit var adapter: ExpenseAdapter
     private lateinit var db: ExpenseDatabase
 
@@ -29,6 +31,7 @@ class FindExpenseByCategoryActivity : AppCompatActivity() {
         categorySpinner = findViewById(R.id.categorySpinner)
         findButton = findViewById(R.id.findButton)
         expensesRecyclerView = findViewById(R.id.expensesRecyclerView)
+        totalCostTextView = findViewById(R.id.totalCostTextView) // Add this line
 
         db = ExpenseDatabase.getDatabase(this)
 
@@ -63,11 +66,24 @@ class FindExpenseByCategoryActivity : AppCompatActivity() {
             try {
                 val expenses = db.expenseDao().getExpensesByCategory(category)
                 adapter.updateData(expenses)
+
+                // Calculate and display total cost
+                val total = expenses.sumOf { it.amount }
+                totalCostTextView.text = "Total: R${"%.2f".format(total)}"
+
                 if (expenses.isEmpty()) {
-                    Toast.makeText(this@FindExpenseByCategoryActivity, "No expenses found for this category.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@FindExpenseByCategoryActivity,
+                        "No expenses found for this category.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@FindExpenseByCategoryActivity, "Error fetching expenses: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this@FindExpenseByCategoryActivity,
+                    "Error fetching expenses: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }

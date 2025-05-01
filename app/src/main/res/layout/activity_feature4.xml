@@ -8,14 +8,39 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_marginTop="50dp"
+        android:gravity="center_horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="100dp"
+                android:fontFamily="@font/aclonica"
+                android:gravity="center"
+                android:text="KASI SAVE"
+                android:textColor="#4CAF73"
+                android:textSize="50sp"
+                android:shadowColor="#000000"
+                android:shadowDx="0"
+                android:shadowDy="4"
+                android:shadowRadius="8" />
+
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/imageView5"
             android:layout_width="match_parent"
-            android:layout_height="275dp"
+            android:layout_height="150dp"
             app:srcCompat="@drawable/expenses"
-            android:layout_marginTop="250dp"/>
+            android:layout_marginTop="50dp"/>
 
         <TextView
             android:id="@+id/textView6"

@@ -1,82 +1,106 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/backround_colour"
-    android:layout_marginTop="50dp">
+    android:orientation="vertical"
+    android:background="@drawable/backround_colour">
 
-    <!-- No expenses message -->
+    <!-- App Title -->
     <TextView
-        android:id="@+id/noExpensesTextView"
+        android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
+        android:fontFamily="@font/aclonica"
         android:gravity="center"
-        android:text="No expenses added yet"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="16sp"
-        android:visibility="gone" />
+        android:text="KASI SAVE"
+        android:textColor="#4CAF73"
+        android:textSize="50sp"
+        android:shadowColor="#000000"
+        android:shadowDx="0"
+        android:shadowDy="4"
+        android:shadowRadius="8"
+        android:layout_marginTop="32dp" />
 
-    <!-- RecyclerView for listing expenses -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/expensesRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/btnSearchByCategory"
-        android:layout_below="@id/noExpensesTextView"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="60dp" />
-
-    <Button
-        android:id="@+id/btnSearchByDate"
+    <!-- Expenses Title -->
+    <TextView
+        android:id="@+id/incomeTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Search Expenses By Date"
-        android:layout_above="@id/btnSearchByCategory"
-        android:layout_margin="16dp" />
+        android:text="Expenses"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="12dp" />
 
-    <Button
-        android:id="@+id/btnSearchByCategory"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/bottomNavigationView"
-        android:layout_margin="16dp"
-        android:text="Search Expenses By Category" />
-
-    <!-- Total expenses summary -->
+    <!-- Total Expenses -->
     <TextView
         android:id="@+id/totalExpensesTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/btnSearchByDate"
-        android:layout_alignParentStart="true"
-        android:layout_margin="16dp"
         android:text="Total: R 0.00"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_margin="16dp" />
 
-    <!-- FloatingActionButton to add new expense -->
+    <!-- No Expenses Message -->
+    <TextView
+        android:id="@+id/noExpensesTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="No expenses added yet"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="16sp"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp" />
+
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/expensesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="16dp"
+        android:clipToPadding="false" />
+
+    <!-- Search Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/btnSearchByDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Search Expenses By Date" />
+
+        <Button
+            android:id="@+id/btnSearchByCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Search Expenses By Category" />
+    </LinearLayout>
+
+    <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addExpenseButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/btnSearchByCategory"
-        android:layout_alignParentEnd="true"
+        android:layout_gravity="end"
         android:layout_margin="16dp"
-        android:contentDescription="Add Expense"
         android:src="@android:drawable/ic_input_add"
+        android:contentDescription="Add Expense"
         app:tint="@android:color/white" />
 
-    <!-- Bottom navigation menu -->
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="?android:attr/windowBackground"
-        app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu" />
-
-</RelativeLayout>
+</LinearLayout>

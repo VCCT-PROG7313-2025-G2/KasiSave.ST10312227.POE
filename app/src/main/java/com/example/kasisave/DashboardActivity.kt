@@ -2,30 +2,27 @@ package com.example.kasisave
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.components.XAxis.XAxisPosition
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-import java.util.Calendar
+import java.util.*
 
 class DashboardActivity : AppCompatActivity() {
 
-    private lateinit var budgetProgressBar: ProgressBar
-    private lateinit var expenseProgressBar: ProgressBar
-    private lateinit var budgetPercentText: TextView
-    private lateinit var expensePercentText: TextView
     private lateinit var totalBalanceText: TextView
+    private lateinit var budgetInfoText: TextView
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var pieChart: PieChart
+    private lateinit var barChart: BarChart
     private lateinit var db: ExpenseDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,13 +30,11 @@ class DashboardActivity : AppCompatActivity() {
         setContentView(R.layout.activity_dashboard)
 
         // Initialize views
-        budgetProgressBar = findViewById(R.id.budgetProgressBar)
-        expenseProgressBar = findViewById(R.id.expenseProgressBar)
-        budgetPercentText = findViewById(R.id.budgetPercentText)
-        expensePercentText = findViewById(R.id.expensePercentText)
         totalBalanceText = findViewById(R.id.totalBalanceAmount)
+        budgetInfoText = findViewById(R.id.budgetInfoText)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         pieChart = findViewById(R.id.pieChart)
+        barChart = findViewById(R.id.barChart)
 
         db = ExpenseDatabase.getDatabase(this)
 
@@ -60,40 +55,31 @@ class DashboardActivity : AppCompatActivity() {
                 val month = (calendar.get(Calendar.MONTH) + 1).toString()
                 val year = calendar.get(Calendar.YEAR)
 
-                // Fetching the milestone data for the current month and year
                 val currentMilestone = db.milestoneDao().getMilestoneForMonth(month, year)
+                val budgetTarget = currentMilestone?.targetAmount ?: totalIncome
 
-                val baseBudget = currentMilestone?.targetAmount ?: totalIncome
-
-                val budgetPercent = if (baseBudget > 0) 100 else 0
-                val expensePercent = if (baseBudget > 0) {
-                    ((totalExpenses / baseBudget) * 100).coerceAtMost(100.0).toInt()
-                } else {
-                    0
+                val remainingBudget = budgetTarget - totalExpenses
+                val budgetStatus = when {
+                    remainingBudget < 0 -> "⚠️ You are over budget by R${"%.2f".format(-remainingBudget)}"
+                    remainingBudget == 0.0 -> "⚠️ You have reached your budget limit."
+                    else -> "✅ You have R${"%.2f".format(remainingBudget)} remaining in your budget."
                 }
 
-                animateProgress(budgetProgressBar, budgetPercent, budgetPercentText)
-                animateProgress(expenseProgressBar, expensePercent, expensePercentText)
+                budgetInfoText.text = """
+                    Budget Overview:
+                    • Budget Target: R${"%.2f".format(budgetTarget)}
+                    • Total Expenses: R${"%.2f".format(totalExpenses)}
+                    • $budgetStatus
+                """.trimIndent()
 
                 setupPieChart(totalIncome, totalExpenses)
+                setupBarChart()
 
             } catch (e: Exception) {
                 e.printStackTrace()
                 totalBalanceText.text = "Error loading data"
+                budgetInfoText.text = "Could not load budget overview."
             }
-        }
-    }
-
-
-    private suspend fun animateProgress(
-        progressBar: ProgressBar,
-        targetProgress: Int,
-        percentText: TextView
-    ) {
-        for (progress in 0..targetProgress) {
-            progressBar.progress = progress
-            percentText.text = "$progress%"
-            delay(15)
         }
     }
 
@@ -126,6 +112,41 @@ class DashboardActivity : AppCompatActivity() {
 
         pieChart.animateY(1000)
         pieChart.invalidate()
+    }
+
+    private suspend fun setupBarChart() {
+        val categoryTotals = db.expenseDao().getTotalAmountByCategory()
+
+        val entries = ArrayList<BarEntry>()
+        val labels = ArrayList<String>()
+
+        categoryTotals.forEachIndexed { index, item ->
+            entries.add(BarEntry(index.toFloat(), item.total.toFloat()))
+            labels.add(item.category)
+        }
+
+        val dataSet = BarDataSet(entries, "Expenses by Category")
+        dataSet.colors = ColorTemplate.COLORFUL_COLORS.toList()
+        dataSet.valueTextSize = 12f
+
+        val barData = BarData(dataSet)
+        barChart.data = barData
+
+        val xAxis = barChart.xAxis
+        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+        xAxis.position = XAxisPosition.BOTTOM
+        xAxis.granularity = 1f
+        xAxis.setDrawGridLines(false)
+        xAxis.labelRotationAngle = -45f
+
+        barChart.axisLeft.axisMinimum = 0f
+        barChart.axisRight.isEnabled = false
+        barChart.description.isEnabled = false
+        barChart.legend.isEnabled = true
+
+        barChart.setFitBars(true)
+        barChart.animateY(1000)
+        barChart.invalidate()
     }
 
     private fun setupBottomNavigation() {
