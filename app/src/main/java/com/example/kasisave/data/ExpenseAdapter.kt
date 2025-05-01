@@ -36,7 +36,7 @@ class ExpenseAdapter(private var expenses: List<Expense>) :
         val expense = expenses[position]
 
         // Set the formatted date
-        val formattedDate = dateFormatter.format(Date(expense.date))
+        val formattedDate = dateFormatter.format(Date(expense.dateMillis))
         holder.categoryTextView.text = "Category: ${expense.category}"
         holder.amountTextView.text = "Amount: R %.2f".format(expense.amount)
         holder.dateTextView.text = "Date: $formattedDate"
@@ -64,7 +64,7 @@ class ExpenseAdapter(private var expenses: List<Expense>) :
     // Method to filter expenses based on a date range (startDate and endDate in milliseconds)
     fun filterExpensesByDate(startDate: Long, endDate: Long) {
         val filteredExpenses = expenses.filter {
-            val expenseDate = it.date
+            val expenseDate = it.dateMillis
             expenseDate >= startDate && expenseDate <= endDate
         }
         expenses = filteredExpenses

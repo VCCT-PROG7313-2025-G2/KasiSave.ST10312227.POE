@@ -40,7 +40,7 @@ class ExpensesActivity : AppCompatActivity() {
         addExpenseButton = findViewById(R.id.addExpenseButton)
         searchByDateButton = findViewById(R.id.btnSearchByDate)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
-        btnSearchByCategory = findViewById(R.id.btnSearchByCategory)
+
 
         // Set up RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -57,10 +57,6 @@ class ExpensesActivity : AppCompatActivity() {
         addExpenseButton.setOnClickListener {
             val intent = Intent(this, AddExpenseActivity::class.java)
             startActivity(intent)
-        }
-
-        btnSearchByCategory.setOnClickListener {
-            startActivity(Intent(this, FindExpenseByCategoryActivity::class.java))
         }
 
         // Search by date button click

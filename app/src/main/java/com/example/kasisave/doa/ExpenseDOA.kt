@@ -11,8 +11,12 @@ interface ExpenseDao {
     @Insert
     suspend fun insert(expense: Expense)
 
-    @Query("SELECT * FROM expenses WHERE date BETWEEN :startDate AND :endDate ORDER BY date ASC")
-    suspend fun getExpensesBetween(startDate: Long, endDate: Long): List<Expense>
+    @Query("SELECT * FROM expenses WHERE dateMillis BETWEEN :startDate AND :endDate AND category = :category ORDER BY dateMillis DESC")
+    suspend fun getExpensesByDateAndCategory(startDate: Long, endDate: Long, category: String): List<Expense>
+
+    @Query("SELECT * FROM expenses WHERE dateMillis BETWEEN :start AND :end")
+    suspend fun getExpensesBetween(start: Long, end: Long): List<Expense>
+
 
 
     @Query("SELECT * FROM expenses WHERE category = :category")

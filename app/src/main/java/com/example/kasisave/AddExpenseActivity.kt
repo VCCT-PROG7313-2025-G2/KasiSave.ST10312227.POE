@@ -172,7 +172,7 @@ class AddExpenseActivity : AppCompatActivity() {
         }
 
         val expense = Expense(
-            date = date,
+            dateMillis = date,
             startTime = startTime,
             endTime = endTime,
             description = description,

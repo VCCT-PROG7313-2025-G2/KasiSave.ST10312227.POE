@@ -2,9 +2,7 @@ package com.example.kasisave
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +18,7 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
     private lateinit var btnFilter: Button
     private lateinit var txtTotalFiltered: TextView
     private lateinit var recyclerFilteredExpenses: RecyclerView
+    private lateinit var categorySpinner: Spinner
 
     private var startDate: Long? = null
     private var endDate: Long? = null
@@ -40,6 +39,14 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
         btnFilter = findViewById(R.id.btnFilter)
         txtTotalFiltered = findViewById(R.id.txtTotalFiltered)
         recyclerFilteredExpenses = findViewById(R.id.recyclerFilteredExpenses)
+        categorySpinner = findViewById(R.id.categorySpinner)
+
+        // Setup Spinner with "All" option
+        val rawCategories = resources.getStringArray(R.array.expense_categories)
+        val categories = listOf("All") + rawCategories
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = spinnerAdapter
 
         // Setup RecyclerView
         adapter = ExpenseAdapter(expensesList)
@@ -67,7 +74,8 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
         // Filter button
         btnFilter.setOnClickListener {
             if (startDate != null && endDate != null) {
-                filterExpensesByDate()
+                val selectedCategory = categorySpinner.selectedItem.toString()
+                filterExpensesByDateAndCategory(selectedCategory)
             } else {
                 Toast.makeText(this, "Please select both start and end dates", Toast.LENGTH_SHORT).show()
             }
@@ -89,23 +97,30 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
         ).show()
     }
 
-    private fun filterExpensesByDate() {
+    private fun filterExpensesByDateAndCategory(category: String) {
         lifecycleScope.launch {
-            // Fetch expenses between the selected start and end dates
-            val filteredExpenses = expenseDatabase.expenseDao().getExpensesBetween(startDate!!, endDate!!)
+            val filteredExpenses = if (category == "All") {
+                expenseDatabase.expenseDao().getExpensesBetween(startDate!!, endDate!!)
+            } else {
+                expenseDatabase.expenseDao().getExpensesByDateAndCategory(startDate!!, endDate!!, category)
+            }
 
             expensesList.clear()
             expensesList.addAll(filteredExpenses)
             adapter.notifyDataSetChanged()
 
-            // Calculate the total amount of the filtered expenses
             val totalAmount = filteredExpenses.sumOf { it.amount }
             txtTotalFiltered.text = "Total: R %.2f".format(totalAmount)
 
-            // Show a message if no expenses were found
             if (filteredExpenses.isEmpty()) {
-                Toast.makeText(this@SearchExpenseByDateActivity, "No expenses found in this date range.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@SearchExpenseByDateActivity,
+                    "No expenses found for this selection.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 }
+
+
