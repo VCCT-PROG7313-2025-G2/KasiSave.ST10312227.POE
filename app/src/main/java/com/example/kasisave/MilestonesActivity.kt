@@ -34,7 +34,7 @@ class MilestonesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_milestones)
 
-        // ✅ Correct key to match LoginActivity
+        //Correct key to match LoginActivity
         userId = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
             .getInt("user_id", -1)
 
