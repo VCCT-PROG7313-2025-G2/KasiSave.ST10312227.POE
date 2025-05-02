@@ -2,10 +2,9 @@ package com.example.kasisave
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
+import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class Feature3Activity : AppCompatActivity() {
@@ -27,14 +26,15 @@ class Feature3Activity : AppCompatActivity() {
         radioButton6.isClickable = false
         radioButton4.isClickable = false
 
-
-        // Set up screen-tap listener on root view
-        findViewById<View>(android.R.id.content).setOnClickListener {
+        // Set up Next button click listener
+        val nextButton = findViewById<Button>(R.id.nextButton)
+        nextButton.setOnClickListener {
             val intent = Intent(this, Feature4Activity::class.java)
             startActivity(intent)
 
-            // Optional: Add transition animation
+
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
     }
 }
+

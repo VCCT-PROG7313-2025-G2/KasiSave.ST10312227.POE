@@ -39,9 +39,16 @@ class LoginActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 val user = userDao.getUserByEmail(email).first()
                 if (user != null && user.passwordHash == password) {
+                    // Save user ID to SharedPreferences
+                    val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
+                    sharedPrefs.edit()
+                        .putInt("user_id", user.id)
+                        .apply()
+
                     runOnUiThread {
                         Toast.makeText(this@LoginActivity, "Login successful!", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                        intent.putExtra("userId", user.id)  // Pass userId to Dashboard
                         startActivity(intent)
                         finish()
                     }

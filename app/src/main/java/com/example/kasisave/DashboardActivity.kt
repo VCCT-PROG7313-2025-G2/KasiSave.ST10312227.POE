@@ -2,18 +2,22 @@ package com.example.kasisave
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.components.XAxis.XAxisPosition
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 class DashboardActivity : AppCompatActivity() {
@@ -24,41 +28,62 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
     private lateinit var db: ExpenseDatabase
+    private lateinit var logOutButton: Button
+    private var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        // Initialize views
+        userId = intent.getIntExtra("userId", -1)
+        if (userId == -1) {
+            finish()
+            return
+        }
+
         totalBalanceText = findViewById(R.id.totalBalanceAmount)
         budgetInfoText = findViewById(R.id.budgetInfoText)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         pieChart = findViewById(R.id.pieChart)
         barChart = findViewById(R.id.barChart)
+        logOutButton = findViewById(R.id.logoutButton)  // Button reference
 
         db = ExpenseDatabase.getDatabase(this)
 
         setupBottomNavigation()
         loadDashboardData()
+
+        // Log-out button click listener
+        logOutButton.setOnClickListener {
+            logOut()
+        }
     }
 
     private fun loadDashboardData() {
         lifecycleScope.launch {
             try {
-                val totalIncome = db.incomeDao().getTotalIncome() ?: 0.0
-                val totalExpenses = db.expenseDao().getTotalExpenses() ?: 0.0
-                val totalBalance = totalIncome - totalExpenses
-
-                totalBalanceText.text = "R${"%.2f".format(totalBalance)}"
-
                 val calendar = Calendar.getInstance()
                 val month = (calendar.get(Calendar.MONTH) + 1).toString()
                 val year = calendar.get(Calendar.YEAR)
 
-                val currentMilestone = db.milestoneDao().getMilestoneForMonth(month, year)
-                val budgetTarget = currentMilestone?.targetAmount ?: totalIncome
+                val totalIncome: Double
+                val totalExpenses: Double
+                val currentMilestone: Milestone?
+                val categoryTotals: List<ExpenseDao.CategoryTotal>
 
+                withContext(Dispatchers.IO) {
+                    totalIncome = db.incomeDao().getTotalIncomeForUser(userId) ?: 0.0
+                    totalExpenses = db.expenseDao().getTotalExpensesForUser(userId) ?: 0.0
+                    currentMilestone = db.milestoneDao().getMilestoneForMonthAndUser(month, year, userId)
+                    categoryTotals = db.expenseDao().getTotalAmountByCategoryForUser(userId)
+                }
+
+                val totalBalance = totalIncome - totalExpenses
+                totalBalanceText.text = "R${"%.2f".format(totalBalance)}"
+
+                val budgetTarget = currentMilestone?.targetAmount ?: totalIncome
                 val remainingBudget = budgetTarget - totalExpenses
+
                 val budgetStatus = when {
                     remainingBudget < 0 -> "⚠️ You are over budget by R${"%.2f".format(-remainingBudget)}"
                     remainingBudget == 0.0 -> "⚠️ You have reached your budget limit."
@@ -73,7 +98,7 @@ class DashboardActivity : AppCompatActivity() {
                 """.trimIndent()
 
                 setupPieChart(totalIncome, totalExpenses)
-                setupBarChart()
+                setupBarChart(categoryTotals)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -85,7 +110,6 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun setupPieChart(income: Double, expenses: Double) {
         val entries = ArrayList<PieEntry>()
-
         if (income > 0) entries.add(PieEntry(income.toFloat(), "Income"))
         if (expenses > 0) entries.add(PieEntry(expenses.toFloat(), "Expenses"))
 
@@ -114,9 +138,7 @@ class DashboardActivity : AppCompatActivity() {
         pieChart.invalidate()
     }
 
-    private suspend fun setupBarChart() {
-        val categoryTotals = db.expenseDao().getTotalAmountByCategory()
-
+    private fun setupBarChart(categoryTotals: List<ExpenseDao.CategoryTotal>) {
         val entries = ArrayList<BarEntry>()
         val labels = ArrayList<String>()
 
@@ -125,25 +147,26 @@ class DashboardActivity : AppCompatActivity() {
             labels.add(item.category)
         }
 
-        val dataSet = BarDataSet(entries, "Expenses by Category")
-        dataSet.colors = ColorTemplate.COLORFUL_COLORS.toList()
-        dataSet.valueTextSize = 12f
+        val dataSet = BarDataSet(entries, "Expenses by Category").apply {
+            colors = ColorTemplate.COLORFUL_COLORS.toList()
+            valueTextSize = 12f
+        }
 
         val barData = BarData(dataSet)
         barChart.data = barData
 
-        val xAxis = barChart.xAxis
-        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-        xAxis.position = XAxisPosition.BOTTOM
-        xAxis.granularity = 1f
-        xAxis.setDrawGridLines(false)
-        xAxis.labelRotationAngle = -45f
+        barChart.xAxis.apply {
+            valueFormatter = IndexAxisValueFormatter(labels)
+            position = XAxis.XAxisPosition.BOTTOM
+            granularity = 1f
+            setDrawGridLines(false)
+            labelRotationAngle = -45f
+        }
 
         barChart.axisLeft.axisMinimum = 0f
         barChart.axisRight.isEnabled = false
         barChart.description.isEnabled = false
         barChart.legend.isEnabled = true
-
         barChart.setFitBars(true)
         barChart.animateY(1000)
         barChart.invalidate()
@@ -151,28 +174,35 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_dashboard -> true
-                R.id.navigation_expenses -> {
-                    startActivity(Intent(this, ExpensesActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_income -> {
-                    startActivity(Intent(this, IncomeActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_milestones -> {
-                    startActivity(Intent(this, MilestonesActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                else -> false
+            val intent = when (item.itemId) {
+                R.id.navigation_dashboard -> return@setOnItemSelectedListener true
+                R.id.navigation_expenses -> Intent(this, ExpensesActivity::class.java)
+                R.id.navigation_income -> Intent(this, IncomeActivity::class.java)
+                R.id.navigation_milestones -> Intent(this, MilestonesActivity::class.java)
+                else -> null
             }
+            intent?.putExtra("userId", userId)
+            intent?.let {
+                startActivity(it)
+                overridePendingTransition(0, 0)
+                finish()
+            }
+            true
         }
+    }
+
+    // Log out method
+    private fun logOut() {
+        // Clear user session data or preferences
+        val sharedPreferences = getSharedPreferences("KasiSavePrefs", MODE_PRIVATE)
+        with(sharedPreferences.edit()) {
+            remove("userId")
+            apply()
+        }
+
+        // Redirect to login screen
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }

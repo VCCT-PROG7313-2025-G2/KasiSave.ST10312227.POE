@@ -1,6 +1,7 @@
 package com.example.kasisave
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -99,10 +100,23 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
 
     private fun filterExpensesByDateAndCategory(category: String) {
         lifecycleScope.launch {
+            // Get logged-in user's ID from shared preferences
+            val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
+            val userId = sharedPrefs.getInt("user_id", -1)
+
+            if (userId == -1) {
+                Toast.makeText(this@SearchExpenseByDateActivity, "Please log in again.", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this@SearchExpenseByDateActivity, LoginActivity::class.java))
+                finish()
+                return@launch
+            }
+
             val filteredExpenses = if (category == "All") {
-                expenseDatabase.expenseDao().getExpensesBetween(startDate!!, endDate!!)
+                // Get expenses for the logged-in user within the date range
+                expenseDatabase.expenseDao().getExpensesBetweenForUser(userId, startDate!!, endDate!!)
             } else {
-                expenseDatabase.expenseDao().getExpensesByDateAndCategory(startDate!!, endDate!!, category)
+                // Get filtered expenses by category and date range for the logged-in user
+                expenseDatabase.expenseDao().getExpensesByDateAndCategoryForUser(userId, startDate!!, endDate!!, category)
             }
 
             expensesList.clear()

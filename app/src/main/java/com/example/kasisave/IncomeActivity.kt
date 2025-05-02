@@ -30,9 +30,19 @@ class IncomeActivity : AppCompatActivity() {
     private lateinit var adapter: IncomeAdapter
     private var selectedDate: String = ""
 
+    private var userId: Int = -1 // Default invalid ID
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_income)
+
+        // Retrieve userId from intent
+        userId = intent.getIntExtra("userId", -1)
+        if (userId == -1) {
+            Toast.makeText(this, "Invalid user. Please log in again.", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
 
         db = ExpenseDatabase.getDatabase(this)
 
@@ -53,7 +63,6 @@ class IncomeActivity : AppCompatActivity() {
         setupAddIncomeButton()
         setupBottomNavigation()
         loadIncomeList()
-
 
         bottomNavigationView.selectedItemId = R.id.navigation_income
     }
@@ -112,7 +121,8 @@ class IncomeActivity : AppCompatActivity() {
                 amount = amount,
                 date = selectedDate,
                 category = category,
-                isRecurring = isRecurring
+                isRecurring = isRecurring,
+                userId = userId
             )
 
             lifecycleScope.launch {
@@ -122,7 +132,7 @@ class IncomeActivity : AppCompatActivity() {
                     amountEditText.text.clear()
                     selectedDateText.text = ""
                     selectedDate = ""
-                    loadIncomeList() // Reload the income list and total income
+                    loadIncomeList()
                 } catch (e: Exception) {
                     Toast.makeText(this@IncomeActivity, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 }
@@ -133,12 +143,11 @@ class IncomeActivity : AppCompatActivity() {
     private fun loadIncomeList() {
         lifecycleScope.launch {
             try {
-                val incomeList = db.incomeDao().getAllIncomes()
+                val incomeList = db.incomeDao().getIncomesForUser(userId)
                 adapter.submitList(incomeList)
 
-                // Calculate and display total income
                 val totalIncome = incomeList.sumOf { it.amount }
-                totalIncomeText.text = "Total Income: $%.2f".format(totalIncome)  // Display total income
+                totalIncomeText.text = "Total Income: $%.2f".format(totalIncome)
             } catch (e: Exception) {
                 Toast.makeText(this@IncomeActivity, "Failed to load income: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
@@ -149,23 +158,26 @@ class IncomeActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java)) // Replace with your actual dashboard activity
+                    val intent = Intent(this, DashboardActivity::class.java)
+                    intent.putExtra("userId", userId)
+                    startActivity(intent)
                     overridePendingTransition(0, 0)
                     finish()
                     true
                 }
                 R.id.navigation_expenses -> {
-                    startActivity(Intent(this, ExpensesActivity::class.java))
+                    val intent = Intent(this, ExpensesActivity::class.java)
+                    intent.putExtra("userId", userId)
+                    startActivity(intent)
                     overridePendingTransition(0, 0)
                     finish()
                     true
                 }
-                R.id.navigation_income -> {
-
-                    true
-                }
+                R.id.navigation_income -> true
                 R.id.navigation_milestones -> {
-                    startActivity(Intent(this, MilestonesActivity::class.java))
+                    val intent = Intent(this, MilestonesActivity::class.java)
+                    intent.putExtra("userId", userId)
+                    startActivity(intent)
                     overridePendingTransition(0, 0)
                     finish()
                     true

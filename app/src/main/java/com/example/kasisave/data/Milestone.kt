@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "milestones")
 data class Milestone(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val userId: Int,
     val name: String,
     val targetAmount: Double,
     val deadline: String,

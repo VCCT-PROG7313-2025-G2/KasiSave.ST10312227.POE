@@ -4,11 +4,9 @@ import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.pm.PackageManager
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -38,10 +36,8 @@ class AddExpenseActivity : AppCompatActivity() {
     private lateinit var recurringCheckBox: CheckBox
 
     private lateinit var db: ExpenseDatabase
-
     private var photoUri: Uri? = null
     private var photoFile: File? = null
-
     private val CAMERA_PERMISSION_REQUEST_CODE = 1001
 
     private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
@@ -57,6 +53,7 @@ class AddExpenseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
 
+        // Views
         dateEditText = findViewById(R.id.dateEditText)
         startTimeEditText = findViewById(R.id.startTimeEditText)
         endTimeEditText = findViewById(R.id.endTimeEditText)
@@ -93,12 +90,8 @@ class AddExpenseActivity : AppCompatActivity() {
     }
 
     private fun setupTimePickers() {
-        startTimeEditText.setOnClickListener {
-            showTimePickerDialog(startTimeEditText)
-        }
-        endTimeEditText.setOnClickListener {
-            showTimePickerDialog(endTimeEditText)
-        }
+        startTimeEditText.setOnClickListener { showTimePickerDialog(startTimeEditText) }
+        endTimeEditText.setOnClickListener { showTimePickerDialog(endTimeEditText) }
     }
 
     private fun showTimePickerDialog(targetEditText: EditText) {
@@ -136,12 +129,10 @@ class AddExpenseActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                launchCamera()
-            } else {
-                Toast.makeText(this, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
-            }
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            launchCamera()
+        } else {
+            Toast.makeText(this, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -160,6 +151,13 @@ class AddExpenseActivity : AppCompatActivity() {
         val photoUriString = photoUri?.toString()
         val isRecurring = recurringCheckBox.isChecked
 
+        // Get user ID from SharedPreferences
+        val userId = getSharedPreferences("kasisave_prefs", MODE_PRIVATE).getInt("user_id", -1)
+        if (userId == -1) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show()
+            return
+        }
+
         if (dateString.isEmpty() || amountText.isEmpty() || category.isEmpty()) {
             Toast.makeText(this, "Please fill in required fields: Date, Category, and Amount.", Toast.LENGTH_SHORT).show()
             return
@@ -172,6 +170,7 @@ class AddExpenseActivity : AppCompatActivity() {
         }
 
         val expense = Expense(
+            userId = userId,
             dateMillis = date,
             startTime = startTime,
             endTime = endTime,

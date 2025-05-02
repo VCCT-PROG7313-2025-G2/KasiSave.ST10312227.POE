@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.kasisave.Milestone
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
 
@@ -29,11 +28,24 @@ class MilestonesActivity : AppCompatActivity() {
     private val milestoneList = mutableListOf<Milestone>()
 
     private lateinit var db: ExpenseDatabase
+    private var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_milestones)
 
+        // ✅ Correct key to match LoginActivity
+        userId = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
+            .getInt("user_id", -1)
+
+        if (userId == -1) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
+        // Initialize views
         milestoneRecyclerView = findViewById(R.id.milestoneRecyclerView)
         editTextGoalName = findViewById(R.id.editTextGoalName)
         editTextTargetAmount = findViewById(R.id.editTextTargetAmount)
@@ -60,7 +72,7 @@ class MilestonesActivity : AppCompatActivity() {
 
     private fun loadMilestones() {
         lifecycleScope.launch {
-            db.milestoneDao().getAllMilestones().collect { loaded ->
+            db.milestoneDao().getAllMilestonesForUser(userId).collect { loaded ->
                 milestoneList.clear()
                 milestoneList.addAll(loaded)
                 milestoneAdapter.notifyDataSetChanged()
@@ -81,6 +93,7 @@ class MilestonesActivity : AppCompatActivity() {
         }
 
         val milestone = Milestone(
+            userId = userId,
             name = goalName,
             targetAmount = targetAmount,
             deadline = deadline,
@@ -90,9 +103,8 @@ class MilestonesActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             db.milestoneDao().insertMilestone(milestone)
-            milestoneList.add(milestone)
-            milestoneAdapter.notifyItemInserted(milestoneList.size - 1)
             resetFields()
+            loadMilestones()
         }
     }
 
@@ -137,19 +149,25 @@ class MilestonesActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java))
+                    val intent = Intent(this, DashboardActivity::class.java)
+                    intent.putExtra("userId", userId)
+                    startActivity(intent)
                     overridePendingTransition(0, 0)
                     finish()
                     true
                 }
                 R.id.navigation_expenses -> {
-                    startActivity(Intent(this, ExpensesActivity::class.java))
+                    val intent = Intent(this, ExpensesActivity::class.java)
+                    intent.putExtra("userId", userId)
+                    startActivity(intent)
                     overridePendingTransition(0, 0)
                     finish()
                     true
                 }
                 R.id.navigation_income -> {
-                    startActivity(Intent(this, IncomeActivity::class.java))
+                    val intent = Intent(this, IncomeActivity::class.java)
+                    intent.putExtra("userId", userId)
+                    startActivity(intent)
                     overridePendingTransition(0, 0)
                     finish()
                     true
@@ -160,4 +178,3 @@ class MilestonesActivity : AppCompatActivity() {
         }
     }
 }
-

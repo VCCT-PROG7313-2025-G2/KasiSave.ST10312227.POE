@@ -2,10 +2,9 @@ package com.example.kasisave
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
+import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class Feature2Activity : AppCompatActivity() {
@@ -21,9 +20,13 @@ class Feature2Activity : AppCompatActivity() {
         val radioButton6 = findViewById<RadioButton>(R.id.radioButton6)
         val radioButton4 = findViewById<RadioButton>(R.id.radioButton4)
 
-        // Set up screen-tap listener
-        findViewById<View>(android.R.id.content).setOnClickListener {
-            startActivity(Intent(this, Feature3Activity::class.java))
+        // Setup Next button logic
+        val nextButton = findViewById<Button>(R.id.nextButton)
+        nextButton.setOnClickListener {
+            val intent = Intent(this, Feature3Activity::class.java)
+            startActivity(intent)
+
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
     }
 }
