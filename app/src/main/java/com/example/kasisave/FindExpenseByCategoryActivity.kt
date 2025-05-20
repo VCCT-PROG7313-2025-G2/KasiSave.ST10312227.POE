@@ -7,13 +7,13 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.kasisave.Expense
 import com.example.kasisave.ExpenseAdapter
-import com.example.kasisave.ExpenseDatabase
 import com.example.kasisave.R
-import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 
 class FindExpenseByCategoryActivity : AppCompatActivity() {
 
@@ -22,7 +22,11 @@ class FindExpenseByCategoryActivity : AppCompatActivity() {
     private lateinit var expensesRecyclerView: RecyclerView
     private lateinit var totalCostTextView: TextView
     private lateinit var adapter: ExpenseAdapter
-    private lateinit var db: ExpenseDatabase
+
+    private val firestore = FirebaseFirestore.getInstance()
+
+    // If you need to filter by user, retrieve userId from intent or auth
+    private var userId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,16 +35,16 @@ class FindExpenseByCategoryActivity : AppCompatActivity() {
         categorySpinner = findViewById(R.id.categorySpinner)
         findButton = findViewById(R.id.findButton)
         expensesRecyclerView = findViewById(R.id.expensesRecyclerView)
-        totalCostTextView = findViewById(R.id.totalCostTextView) // Add this line
+        totalCostTextView = findViewById(R.id.totalCostTextView)
 
-        db = ExpenseDatabase.getDatabase(this)
+        userId = intent.getStringExtra("userId")
 
         setupCategorySpinner()
         setupRecyclerView()
 
         findButton.setOnClickListener {
             val selectedCategory = categorySpinner.selectedItem?.toString()
-            if (selectedCategory != null) {
+            if (!selectedCategory.isNullOrEmpty()) {
                 fetchExpensesByCategory(selectedCategory)
             } else {
                 Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
@@ -62,29 +66,50 @@ class FindExpenseByCategoryActivity : AppCompatActivity() {
     }
 
     private fun fetchExpensesByCategory(category: String) {
-        lifecycleScope.launch {
-            try {
-                val expenses = db.expenseDao().getExpensesByCategory(category)
-                adapter.updateData(expenses)
+        var query = firestore.collection("expenses").whereEqualTo("category", category)
 
-                // Calculate and display total cost
-                val total = expenses.sumOf { it.amount }
-                totalCostTextView.text = "Total: R${"%.2f".format(total)}"
+        // Optional: filter by user
+        userId?.let {
+            query = query.whereEqualTo("userId", it)
+        }
 
-                if (expenses.isEmpty()) {
-                    Toast.makeText(
-                        this@FindExpenseByCategoryActivity,
-                        "No expenses found for this category.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this@FindExpenseByCategoryActivity,
-                    "Error fetching expenses: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+        query.get()
+            .addOnSuccessListener { documents ->
+                handleExpensesQueryResult(documents)
             }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error fetching expenses: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun handleExpensesQueryResult(documents: QuerySnapshot) {
+        val expenses = documents.documents.mapNotNull { doc ->
+            try {
+                val id = doc.id
+                val description = doc.getString("description") ?: ""
+                val amount = doc.getDouble("amount") ?: 0.0
+                val category = doc.getString("category") ?: ""
+                val dateMillis = doc.getLong("dateMillis") ?: 0L
+
+                Expense(
+                    id = id,
+                    description = description,
+                    amount = amount,
+                    category = category,
+                    dateMillis = dateMillis
+                )
+            } catch (ex: Exception) {
+                null
+            }
+        }
+
+        adapter.updateData(expenses)
+
+        val total = expenses.sumOf { it.amount }
+        totalCostTextView.text = "Total: R${"%.2f".format(total)}"
+
+        if (expenses.isEmpty()) {
+            Toast.makeText(this, "No expenses found for this category.", Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -5,14 +5,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.launch
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class IncomeActivity : AppCompatActivity() {
 
@@ -26,25 +26,25 @@ class IncomeActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var totalIncomeText: TextView
 
-    private lateinit var db: ExpenseDatabase
     private lateinit var adapter: IncomeAdapter
     private var selectedDate: String = ""
 
-    private var userId: Int = -1 // Default invalid ID
+    private lateinit var firestore: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+    private lateinit var userId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_income)
 
-        // Retrieve userId from intent
-        userId = intent.getIntExtra("userId", -1)
-        if (userId == -1) {
-            Toast.makeText(this, "Invalid user. Please log in again.", Toast.LENGTH_LONG).show()
+        // Firebase setup
+        auth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
+        userId = auth.currentUser?.uid ?: run {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_LONG).show()
             finish()
             return
         }
-
-        db = ExpenseDatabase.getDatabase(this)
 
         // View initialization
         amountEditText = findViewById(R.id.amountEditText)
@@ -117,67 +117,73 @@ class IncomeActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val income = Income(
-                amount = amount,
-                date = selectedDate,
-                category = category,
-                isRecurring = isRecurring,
-                userId = userId
+            val income = hashMapOf(
+                "amount" to amount,
+                "date" to selectedDate,
+                "category" to category,
+                "isRecurring" to isRecurring,
+                "userId" to userId
             )
 
-            lifecycleScope.launch {
-                try {
-                    db.incomeDao().insertIncome(income)
-                    Toast.makeText(this@IncomeActivity, "Income added", Toast.LENGTH_SHORT).show()
+            firestore.collection("incomes")
+                .add(income)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Income added", Toast.LENGTH_SHORT).show()
                     amountEditText.text.clear()
                     selectedDateText.text = ""
                     selectedDate = ""
                     loadIncomeList()
-                } catch (e: Exception) {
-                    Toast.makeText(this@IncomeActivity, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 }
-            }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
         }
     }
 
     private fun loadIncomeList() {
-        lifecycleScope.launch {
-            try {
-                val incomeList = db.incomeDao().getIncomesForUser(userId)
+        firestore.collection("incomes")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                val incomeList = result.map { doc ->
+                    Income(
+                        id = doc.id,
+                        amount = doc.getDouble("amount") ?: 0.0,
+                        date = doc.getString("date") ?: "",
+                        category = doc.getString("category") ?: "",
+                        isRecurring = doc.getBoolean("isRecurring") ?: false,
+                        userId = userId
+                    )
+                }
+
                 adapter.submitList(incomeList)
 
                 val totalIncome = incomeList.sumOf { it.amount }
                 totalIncomeText.text = "Total Income: $%.2f".format(totalIncome)
-            } catch (e: Exception) {
-                Toast.makeText(this@IncomeActivity, "Failed to load income: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
-        }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Failed to load income: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_dashboard -> {
-                    val intent = Intent(this, DashboardActivity::class.java)
-                    intent.putExtra("userId", userId)
-                    startActivity(intent)
+                    startActivity(Intent(this, DashboardActivity::class.java))
                     overridePendingTransition(0, 0)
                     finish()
                     true
                 }
                 R.id.navigation_expenses -> {
-                    val intent = Intent(this, ExpensesActivity::class.java)
-                    intent.putExtra("userId", userId)
-                    startActivity(intent)
+                    startActivity(Intent(this, ExpensesActivity::class.java))
                     overridePendingTransition(0, 0)
                     finish()
                     true
                 }
                 R.id.navigation_income -> true
                 R.id.navigation_milestones -> {
-                    val intent = Intent(this, MilestonesActivity::class.java)
-                    intent.putExtra("userId", userId)
-                    startActivity(intent)
+                    startActivity(Intent(this, MilestonesActivity::class.java))
                     overridePendingTransition(0, 0)
                     finish()
                     true

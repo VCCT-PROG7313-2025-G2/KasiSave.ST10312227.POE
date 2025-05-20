@@ -13,11 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.lifecycle.lifecycleScope
 import com.example.kasisave.Expense
-import com.example.kasisave.ExpenseDatabase
 import com.example.kasisave.R
-import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FirebaseFirestore
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,7 +33,6 @@ class AddExpenseActivity : AppCompatActivity() {
     private lateinit var expenseImageView: ImageView
     private lateinit var recurringCheckBox: CheckBox
 
-    private lateinit var db: ExpenseDatabase
     private var photoUri: Uri? = null
     private var photoFile: File? = null
     private val CAMERA_PERMISSION_REQUEST_CODE = 1001
@@ -53,7 +50,7 @@ class AddExpenseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
 
-        // Views
+        // Bind Views
         dateEditText = findViewById(R.id.dateEditText)
         startTimeEditText = findViewById(R.id.startTimeEditText)
         endTimeEditText = findViewById(R.id.endTimeEditText)
@@ -65,26 +62,20 @@ class AddExpenseActivity : AppCompatActivity() {
         expenseImageView = findViewById(R.id.expenseImageView)
         recurringCheckBox = findViewById(R.id.recurringCheckBox)
 
-        db = ExpenseDatabase.getDatabase(this)
-
         setupDatePicker()
         setupTimePickers()
         setupCategorySpinner()
 
-        attachPhotoButton.setOnClickListener {
-            checkCameraPermissionAndLaunch()
-        }
-
-        saveButton.setOnClickListener {
-            saveExpense()
-        }
+        attachPhotoButton.setOnClickListener { checkCameraPermissionAndLaunch() }
+        saveButton.setOnClickListener { saveExpense() }
     }
 
     private fun setupDatePicker() {
         val calendar = Calendar.getInstance()
         dateEditText.setOnClickListener {
             DatePickerDialog(this, { _, year, month, day ->
-                dateEditText.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
+                val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
+                dateEditText.setText(selectedDate)
             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
         }
     }
@@ -94,10 +85,10 @@ class AddExpenseActivity : AppCompatActivity() {
         endTimeEditText.setOnClickListener { showTimePickerDialog(endTimeEditText) }
     }
 
-    private fun showTimePickerDialog(targetEditText: EditText) {
+    private fun showTimePickerDialog(target: EditText) {
         val calendar = Calendar.getInstance()
         TimePickerDialog(this, { _, hour, minute ->
-            targetEditText.setText(String.format("%02d:%02d", hour, minute))
+            target.setText(String.format("%02d:%02d", hour, minute))
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
     }
 
@@ -139,39 +130,46 @@ class AddExpenseActivity : AppCompatActivity() {
     private fun saveExpense() {
         val dateString = dateEditText.text.toString()
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val parsedDate = formatter.parse(dateString)
-        val date = parsedDate?.time ?: System.currentTimeMillis()
+        val parsedDate = try {
+            formatter.parse(dateString)
+        } catch (e: Exception) {
+            null
+        }
 
-        val startTime = startTimeEditText.text?.toString()?.takeIf { it.isNotBlank() }
-        val endTime = endTimeEditText.text?.toString()?.takeIf { it.isNotBlank() }
-        val description = descriptionEditText.text?.toString()?.takeIf { it.isNotBlank() }
+        if (parsedDate == null) {
+            Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val dateMillis = parsedDate.time
+        val startTime = startTimeEditText.text.toString().takeIf { it.isNotBlank() }
+        val endTime = endTimeEditText.text.toString().takeIf { it.isNotBlank() }
+        val description = descriptionEditText.text.toString().takeIf { it.isNotBlank() }
         val amountText = amountEditText.text.toString()
-        val category = categorySpinner.selectedItem?.toString() ?: ""
-        val imagePath = photoFile?.absolutePath
-        val photoUriString = photoUri?.toString()
-        val isRecurring = recurringCheckBox.isChecked
-
-        // Get user ID from SharedPreferences
-        val userId = getSharedPreferences("kasisave_prefs", MODE_PRIVATE).getInt("user_id", -1)
-        if (userId == -1) {
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        if (dateString.isEmpty() || amountText.isEmpty() || category.isEmpty()) {
-            Toast.makeText(this, "Please fill in required fields: Date, Category, and Amount.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         val amount = amountText.toDoubleOrNull()
+        val category = categorySpinner.selectedItem?.toString()?.takeIf { it.isNotBlank() } ?: ""
+        val isRecurring = recurringCheckBox.isChecked
+        val photoUriString = photoUri?.toString()
+
         if (amount == null) {
             Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
             return
         }
 
+        if (category.isEmpty()) {
+            Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userId = getSharedPreferences("kasisave_prefs", MODE_PRIVATE).getString("user_id", null)
+        if (userId == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show()
+            return
+        }
+
         val expense = Expense(
             userId = userId,
-            dateMillis = date,
+            dateMillis = dateMillis,
             startTime = startTime,
             endTime = endTime,
             description = description,
@@ -181,14 +179,15 @@ class AddExpenseActivity : AppCompatActivity() {
             isRecurring = isRecurring
         )
 
-        lifecycleScope.launch {
-            try {
-                db.expenseDao().insert(expense)
-                Toast.makeText(this@AddExpenseActivity, "Expense saved", Toast.LENGTH_SHORT).show()
+        FirebaseFirestore.getInstance()
+            .collection("expenses")
+            .add(expense)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Expense saved", Toast.LENGTH_SHORT).show()
                 finish()
-            } catch (e: Exception) {
-                Toast.makeText(this@AddExpenseActivity, "Error saving expense: ${e.message}", Toast.LENGTH_LONG).show()
             }
-        }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error saving expense: ${e.message}", Toast.LENGTH_LONG).show()
+            }
     }
 }

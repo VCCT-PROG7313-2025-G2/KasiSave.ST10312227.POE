@@ -7,12 +7,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.kasisave.data.AppDatabase
-import com.example.kasisave.data.User
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import com.example.kasisave.auth.AuthManager
 
 class SignupActivity : AppCompatActivity() {
 
@@ -24,9 +19,6 @@ class SignupActivity : AppCompatActivity() {
         val createAccountButton = findViewById<Button>(R.id.createAccountButton)
         val emailInput = findViewById<EditText>(R.id.emailInput)
         val passwordInput = findViewById<EditText>(R.id.passwordInput)
-
-        val db = AppDatabase.getDatabase(applicationContext)
-        val userDao = db.userDao()
 
         signInText.setOnClickListener {
             val intent = Intent(this, LoginActivity::class.java)
@@ -42,19 +34,30 @@ class SignupActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            CoroutineScope(Dispatchers.IO).launch {
-                val existingUser = userDao.getUserByEmail(email).first()
-                if (existingUser != null) {
-                    runOnUiThread {
-                        Toast.makeText(this@SignupActivity, "User already exists", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    val newUser = User(email = email, passwordHash = password)
-                    userDao.insertUser(newUser)
-                    runOnUiThread {
-                        Toast.makeText(this@SignupActivity, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@SignupActivity, LoginActivity::class.java))
-                        finish()
+            // Use Firebase Authentication to create the account
+            AuthManager.signUp(email, password) { success, error ->
+                runOnUiThread {
+                    if (success) {
+                        val userId = AuthManager.getCurrentUserUid()
+
+                        if (!userId.isNullOrBlank()) {
+                            // Save UID using the consistent "user_id" key
+                            val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
+                            sharedPrefs.edit()
+                                .putString("user_id", userId)
+                                .apply()
+
+                            Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
+
+                            val intent = Intent(this, DashboardActivity::class.java)
+                            intent.putExtra("userId", userId)
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            Toast.makeText(this, "Failed to retrieve user ID", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Error: $error", Toast.LENGTH_LONG).show()
                     }
                 }
             }

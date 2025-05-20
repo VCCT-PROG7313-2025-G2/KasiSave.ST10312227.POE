@@ -12,4 +12,7 @@
     <color name="bottom_nav_bg">#FFF9C4</color>
     <color name="red">#FF3B30</color>
 
+    <color name="teal_700">#018786</color>
+    <color name="purple_500">#6200EE</color>
+
 </resources>

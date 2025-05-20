@@ -7,11 +7,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.kasisave.data.AppDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import com.example.kasisave.auth.AuthManager
 
 class LoginActivity : AppCompatActivity() {
 
@@ -24,8 +20,10 @@ class LoginActivity : AppCompatActivity() {
         val emailInputLogin: EditText = findViewById(R.id.emailInput)
         val passwordInputLogin: EditText = findViewById(R.id.passwordInput)
 
-        val db = AppDatabase.getDatabase(applicationContext)
-        val userDao = db.userDao()
+        signUpLinkText.setOnClickListener {
+            val intent = Intent(this, SignupActivity::class.java)
+            startActivity(intent)
+        }
 
         logInButton.setOnClickListener {
             val email = emailInputLogin.text.toString().trim()
@@ -36,35 +34,35 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            CoroutineScope(Dispatchers.IO).launch {
-                val user = userDao.getUserByEmail(email).first()
-                if (user != null && user.passwordHash == password) {
-                    // Save user ID to SharedPreferences
-                    val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
-                    sharedPrefs.edit()
-                        .putInt("user_id", user.id)
-                        .apply()
+            // Use Firebase Authentication to sign in
+            AuthManager.signIn(email, password) { success, error ->
+                runOnUiThread {
+                    if (success) {
+                        val userId = AuthManager.getCurrentUserUid()
 
-                    runOnUiThread {
-                        Toast.makeText(this@LoginActivity, "Login successful!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
-                        intent.putExtra("userId", user.id)  // Pass userId to Dashboard
-                        startActivity(intent)
-                        finish()
-                    }
-                } else {
-                    runOnUiThread {
-                        Toast.makeText(this@LoginActivity, "Email or Password is incorrect", Toast.LENGTH_SHORT).show()
+                        if (!userId.isNullOrBlank()) {
+                            // Save UID for later use
+                            val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
+                            sharedPrefs.edit()
+                                .putString("user_id", userId) // use "user_id" to match ExpensesActivity
+                                .apply()
+
+                            Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
+
+                            val intent = Intent(this, DashboardActivity::class.java)
+                            intent.putExtra("userId", userId)
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            Toast.makeText(this, "Failed to retrieve user ID", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Email or Password is incorrect: $error", Toast.LENGTH_LONG).show()
                         emailInputLogin.error = "Incorrect email"
                         passwordInputLogin.error = "Incorrect password"
                     }
                 }
             }
-        }
-
-        signUpLinkText.setOnClickListener {
-            val intent = Intent(this, SignupActivity::class.java)
-            startActivity(intent)
         }
     }
 }

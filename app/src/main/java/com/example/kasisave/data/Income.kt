@@ -1,14 +1,10 @@
 package com.example.kasisave
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "income")
 data class Income(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val userId: Int,
-    val amount: Double,
-    val date: String,
-    val category: String,
-    val isRecurring: Boolean
+    val id: String = "",             // Firestore document ID
+    val userId: String = "",         // Firebase UID
+    val amount: Double = 0.0,
+    val date: String = "",
+    val category: String = "",
+    val isRecurring: Boolean = false
 )

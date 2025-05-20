@@ -7,13 +7,13 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.kasisave.activities.AddExpenseActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class ExpensesActivity : AppCompatActivity() {
 
@@ -25,14 +25,13 @@ class ExpensesActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
 
     private lateinit var adapter: ExpenseAdapter
-    private lateinit var db: ExpenseDatabase
-    private var userId: Int = -1
+    private val firestore = FirebaseFirestore.getInstance()
+    private var userId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_expenses)
 
-        // Initialize views
         recyclerView = findViewById(R.id.expensesRecyclerView)
         noExpensesTextView = findViewById(R.id.noExpensesTextView)
         totalExpensesTextView = findViewById(R.id.totalExpensesTextView)
@@ -40,39 +39,31 @@ class ExpensesActivity : AppCompatActivity() {
         searchByDateButton = findViewById(R.id.btnSearchByDate)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
 
-        // Set up RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ExpenseAdapter(mutableListOf())
+        adapter = ExpenseAdapter(emptyList())
         recyclerView.adapter = adapter
 
-        // Initialize database
-        db = ExpenseDatabase.getDatabase(this)
-
-        // Retrieve user ID
+        // ✅ Corrected key to match saved UID
         val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
-        userId = sharedPrefs.getInt("user_id", -1)
+        userId = sharedPrefs.getString("user_uid", "") ?: ""
 
-        if (userId == -1) {
+        if (userId.isEmpty()) {
             Toast.makeText(this, "Please log in again.", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
 
-        // Load expenses
         loadExpenses()
 
-        // Add Expense button click
         addExpenseButton.setOnClickListener {
             startActivity(Intent(this, AddExpenseActivity::class.java))
         }
 
-        // Search by date button click
         searchByDateButton.setOnClickListener {
             startActivity(Intent(this, SearchExpenseByDateActivity::class.java))
         }
 
-        // Bottom navigation
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_dashboard -> {
@@ -111,27 +102,30 @@ class ExpensesActivity : AppCompatActivity() {
     }
 
     private fun loadExpenses() {
-        lifecycleScope.launch {
-            if (userId == -1) {
-                Toast.makeText(this@ExpensesActivity, "Please log in again.", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this@ExpensesActivity, LoginActivity::class.java))
-                finish()
-                return@launch
-            }
+        firestore.collection("expenses")
+            .whereEqualTo("userId", userId)
+            .orderBy("dateMillis", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { result ->
+                val expenses = result.map { doc ->
+                    doc.toObject(Expense::class.java).copy(id = doc.id)
+                }
 
-            val expenses = db.expenseDao().getExpensesForUser(userId)
-
-            if (expenses.isEmpty()) {
-                recyclerView.visibility = View.GONE
-                noExpensesTextView.visibility = View.VISIBLE
-                totalExpensesTextView.text = "Total: R 0.00"
-            } else {
-                recyclerView.visibility = View.VISIBLE
-                noExpensesTextView.visibility = View.GONE
-                adapter.setExpenses(expenses)
-                val total = expenses.sumOf { it.amount }
-                totalExpensesTextView.text = "Total: R %.2f".format(total)
+                if (expenses.isEmpty()) {
+                    recyclerView.visibility = View.GONE
+                    noExpensesTextView.visibility = View.VISIBLE
+                    totalExpensesTextView.text = "Total: R 0.00"
+                } else {
+                    recyclerView.visibility = View.VISIBLE
+                    noExpensesTextView.visibility = View.GONE
+                    adapter.setExpenses(expenses)
+                    val total = expenses.sumOf { it.amount }
+                    totalExpensesTextView.text = "Total: R %.2f".format(total)
+                }
             }
-        }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error loading expenses: ${e.message}", Toast.LENGTH_LONG).show()
+                e.printStackTrace() // Log full error to Logcat
+            }
     }
 }

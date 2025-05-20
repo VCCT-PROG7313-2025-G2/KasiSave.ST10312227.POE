@@ -5,10 +5,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,11 +24,11 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
     private var startDate: Long? = null
     private var endDate: Long? = null
 
-    private lateinit var expenseDatabase: ExpenseDatabase
     private lateinit var adapter: ExpenseAdapter
     private val expensesList = mutableListOf<Expense>()
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,9 +53,6 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
         adapter = ExpenseAdapter(expensesList)
         recyclerFilteredExpenses.layoutManager = LinearLayoutManager(this)
         recyclerFilteredExpenses.adapter = adapter
-
-        // Initialize database
-        expenseDatabase = ExpenseDatabase.getDatabase(this)
 
         // Set date picker listeners
         btnStartDate.setOnClickListener {
@@ -99,42 +96,41 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
     }
 
     private fun filterExpensesByDateAndCategory(category: String) {
-        lifecycleScope.launch {
-            // Get logged-in user's ID from shared preferences
-            val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
-            val userId = sharedPrefs.getInt("user_id", -1)
+        val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
+        val userId = sharedPrefs.getString("user_id", null)
 
-            if (userId == -1) {
-                Toast.makeText(this@SearchExpenseByDateActivity, "Please log in again.", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this@SearchExpenseByDateActivity, LoginActivity::class.java))
-                finish()
-                return@launch
-            }
-
-            val filteredExpenses = if (category == "All") {
-                // Get expenses for the logged-in user within the date range
-                expenseDatabase.expenseDao().getExpensesBetweenForUser(userId, startDate!!, endDate!!)
-            } else {
-                // Get filtered expenses by category and date range for the logged-in user
-                expenseDatabase.expenseDao().getExpensesByDateAndCategoryForUser(userId, startDate!!, endDate!!, category)
-            }
-
-            expensesList.clear()
-            expensesList.addAll(filteredExpenses)
-            adapter.notifyDataSetChanged()
-
-            val totalAmount = filteredExpenses.sumOf { it.amount }
-            txtTotalFiltered.text = "Total: R %.2f".format(totalAmount)
-
-            if (filteredExpenses.isEmpty()) {
-                Toast.makeText(
-                    this@SearchExpenseByDateActivity,
-                    "No expenses found for this selection.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        if (userId == null) {
+            Toast.makeText(this, "Please log in again.", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
         }
+
+        var query: Query = firestore.collection("expenses")
+            .whereEqualTo("userId", userId)
+            .whereGreaterThanOrEqualTo("dateMillis", startDate!!)
+            .whereLessThanOrEqualTo("dateMillis", endDate!!)
+
+        if (category != "All") {
+            query = query.whereEqualTo("category", category)
+        }
+
+        query.get()
+            .addOnSuccessListener { snapshot ->
+                expensesList.clear()
+                val total = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
+                    .onEach { expensesList.add(it) }
+                    .sumOf { it.amount }
+
+                adapter.notifyDataSetChanged()
+                txtTotalFiltered.text = "Total: R %.2f".format(total)
+
+                if (expensesList.isEmpty()) {
+                    Toast.makeText(this, "No expenses found for this selection.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error fetching expenses: ${e.message}", Toast.LENGTH_LONG).show()
+            }
     }
 }
-
-
