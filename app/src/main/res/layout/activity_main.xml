@@ -5,55 +5,67 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@drawable/backround_colour"
-    >
+    android:background="@color/light_background"
+    android:padding="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="478dp"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center">
 
         <ImageView
             android:id="@+id/imageView2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:contentDescription="App Logo"
+            android:scaleType="fitCenter"
             app:srcCompat="@drawable/kasi_save_logo" />
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="match_parent"
-            android:layout_height="98dp"
+            android:layout_height="wrap_content"
             android:fontFamily="@font/aclonica"
             android:gravity="center"
             android:text="WELCOME TO"
-            android:textColor="#14303B"
-            android:textSize="20sp" />
+            android:textColor="@color/dark_gray"
+            android:textSize="20sp"
+            android:layout_marginTop="16dp" />
 
         <TextView
             android:id="@+id/textView2"
             android:layout_width="match_parent"
-            android:layout_height="107dp"
+            android:layout_height="wrap_content"
             android:fontFamily="@font/aclonica"
             android:gravity="center"
             android:text="KASI SAVE"
-            android:textColor="#14303B"
-            android:textSize="48sp" />
+            android:textColor="@color/green_primary"
+            android:textSize="48sp"
+            android:layout_marginTop="4dp" />
 
         <TextView
             android:id="@+id/TextView3"
             android:layout_width="match_parent"
-            android:layout_height="83dp"
+            android:layout_height="wrap_content"
             android:fontFamily="@font/aclonica"
             android:gravity="center"
-            android:text="&quot;MAKING CENTS OF YOUR NONSENSE SPENDING!&quot;"
-            android:textColor="#14303B"
-            android:textSize="20sp" />
-
+            android:text="MAKING CENTS OF YOUR NONSENSE SPENDING!"
+        android:textColor="@color/dark_gray"
+        android:textSize="18sp"
+        android:layout_marginTop="8dp" />
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button2"
-        android:layout_width="194dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="GET STARTED" />
+        android:text="GET STARTED"
+        android:textSize="16sp"
+        android:textColor="@color/colorOnPrimary"
+        app:cornerRadius="16dp"
+        app:backgroundTint="@color/green_primary"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="32dp" />
 </LinearLayout>

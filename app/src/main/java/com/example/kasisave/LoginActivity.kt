@@ -2,27 +2,35 @@ package com.example.kasisave
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.airbnb.lottie.LottieAnimationView
 import com.example.kasisave.auth.AuthManager
 
 class LoginActivity : AppCompatActivity() {
+
+    private lateinit var animationView: LottieAnimationView
+    private lateinit var emailInputLogin: EditText
+    private lateinit var passwordInputLogin: EditText
+    private lateinit var logInButton: Button
+    private lateinit var signUpLinkText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        val signUpLinkText: TextView = findViewById(R.id.signUpLinkText)
-        val logInButton: Button = findViewById(R.id.createAccountButton)
-        val emailInputLogin: EditText = findViewById(R.id.emailInput)
-        val passwordInputLogin: EditText = findViewById(R.id.passwordInput)
+        // UI Components
+        animationView = findViewById(R.id.lightningAnimation)
+        emailInputLogin = findViewById(R.id.emailInput)
+        passwordInputLogin = findViewById(R.id.passwordInput)
+        logInButton = findViewById(R.id.loginButton)
+        signUpLinkText = findViewById(R.id.signUpLinkText)
 
         signUpLinkText.setOnClickListener {
-            val intent = Intent(this, SignupActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, SignupActivity::class.java))
         }
 
         logInButton.setOnClickListener {
@@ -34,25 +42,26 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Use Firebase Authentication to sign in
             AuthManager.signIn(email, password) { success, error ->
                 runOnUiThread {
                     if (success) {
                         val userId = AuthManager.getCurrentUserUid()
 
                         if (!userId.isNullOrBlank()) {
-                            // Save UID for later use
+                            // Save UID
                             val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
-                            sharedPrefs.edit()
-                                .putString("user_id", userId) // use "user_id" to match ExpensesActivity
-                                .apply()
+                            sharedPrefs.edit().putString("user_id", userId).apply()
 
-                            Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
+                            // Play animation
+                            playSuccessAnimation()
 
-                            val intent = Intent(this, DashboardActivity::class.java)
-                            intent.putExtra("userId", userId)
-                            startActivity(intent)
-                            finish()
+                            // Delay transition to dashboard after animation
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                val intent = Intent(this, DashboardActivity::class.java)
+                                intent.putExtra("userId", userId)
+                                startActivity(intent)
+                                finish()
+                            }, 1800) // Wait ~1.8 seconds for animation
                         } else {
                             Toast.makeText(this, "Failed to retrieve user ID", Toast.LENGTH_LONG).show()
                         }
@@ -64,5 +73,10 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun playSuccessAnimation() {
+        animationView.visibility = View.VISIBLE
+        animationView.playAnimation()
     }
 }

@@ -49,6 +49,8 @@ dependencies {
     // implementation("androidx.room:room-runtime:$roomVersion")
     // kapt("androidx.room:room-compiler:$roomVersion")
     // implementation("androidx.room:room-ktx:$roomVersion")
+    implementation ("com.google.firebase:firebase-storage:20.3.0")
+    implementation ("com.google.firebase:firebase-storage-ktx:20.3.0")
 
     // AndroidX + Material
     implementation(libs.androidx.core.ktx)
@@ -57,10 +59,14 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
+    //Lottie
+    implementation ("com.airbnb.android:lottie:6.0.1")
+
     // Glide
-    implementation("com.github.bumptech.glide:glide:4.13.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.androidx.media3.common.ktx)
     annotationProcessor("com.github.bumptech.glide:compiler:4.13.0")
+    kapt ("com.github.bumptech.glide:compiler:4.16.0")
 
     // MPAndroidChart
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")

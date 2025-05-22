@@ -1,14 +1,17 @@
 package com.example.kasisave
 
+import android.animation.Animator
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.airbnb.lottie.LottieAnimationView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
@@ -25,6 +28,7 @@ class IncomeActivity : AppCompatActivity() {
     private lateinit var incomeRecyclerView: RecyclerView
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var totalIncomeText: TextView
+    private lateinit var incomeAnimationView: LottieAnimationView
 
     private lateinit var adapter: IncomeAdapter
     private var selectedDate: String = ""
@@ -37,7 +41,7 @@ class IncomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_income)
 
-        // Firebase setup
+        // Initialize Firebase
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
         userId = auth.currentUser?.uid ?: run {
@@ -46,7 +50,7 @@ class IncomeActivity : AppCompatActivity() {
             return
         }
 
-        // View initialization
+        // Bind views
         amountEditText = findViewById(R.id.amountEditText)
         dateButton = findViewById(R.id.dateButton)
         selectedDateText = findViewById(R.id.selectedDateText)
@@ -56,6 +60,7 @@ class IncomeActivity : AppCompatActivity() {
         incomeRecyclerView = findViewById(R.id.incomeRecyclerView)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         totalIncomeText = findViewById(R.id.totalIncomeTextView)
+        incomeAnimationView = findViewById(R.id.incomeAnimationView)
 
         setupCategorySpinner()
         setupDatePicker()
@@ -102,7 +107,7 @@ class IncomeActivity : AppCompatActivity() {
 
     private fun setupAddIncomeButton() {
         addIncomeButton.setOnClickListener {
-            val amountText = amountEditText.text.toString()
+            val amountText = amountEditText.text.toString().trim()
             val category = categorySpinner.selectedItem.toString()
             val isRecurring = recurringCheckBox.isChecked
 
@@ -130,9 +135,26 @@ class IncomeActivity : AppCompatActivity() {
                 .addOnSuccessListener {
                     Toast.makeText(this, "Income added", Toast.LENGTH_SHORT).show()
                     amountEditText.text.clear()
-                    selectedDateText.text = ""
+                    recurringCheckBox.isChecked = false
+                    selectedDateText.text = "No date selected"
                     selectedDate = ""
                     loadIncomeList()
+
+                    // Play the animation
+                    incomeAnimationView.visibility = View.VISIBLE
+                    incomeAnimationView.playAnimation()
+                    incomeAnimationView.addAnimatorListener(object : Animator.AnimatorListener {
+                        override fun onAnimationStart(animation: Animator) {}
+
+                        override fun onAnimationEnd(animation: Animator) {
+                            incomeAnimationView.visibility = View.GONE
+                        }
+
+                        override fun onAnimationCancel(animation: Animator) {}
+
+                        override fun onAnimationRepeat(animation: Animator) {}
+                    })
+
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
@@ -159,7 +181,7 @@ class IncomeActivity : AppCompatActivity() {
                 adapter.submitList(incomeList)
 
                 val totalIncome = incomeList.sumOf { it.amount }
-                totalIncomeText.text = "Total Income: $%.2f".format(totalIncome)
+                totalIncomeText.text = "Total Income: R%.2f".format(totalIncome)
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Failed to load income: ${e.localizedMessage}", Toast.LENGTH_LONG).show()

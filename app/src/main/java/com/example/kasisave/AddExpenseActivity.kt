@@ -1,18 +1,21 @@
 package com.example.kasisave.activities
 
 import android.Manifest
+import android.animation.Animator
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.airbnb.lottie.LottieAnimationView
 import com.example.kasisave.Expense
 import com.example.kasisave.R
 import com.google.firebase.firestore.FirebaseFirestore
@@ -32,6 +35,7 @@ class AddExpenseActivity : AppCompatActivity() {
     private lateinit var saveButton: Button
     private lateinit var expenseImageView: ImageView
     private lateinit var recurringCheckBox: CheckBox
+    private lateinit var expenseAnimationView: LottieAnimationView
 
     private var photoUri: Uri? = null
     private var photoFile: File? = null
@@ -61,6 +65,7 @@ class AddExpenseActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.saveButton)
         expenseImageView = findViewById(R.id.expenseImageView)
         recurringCheckBox = findViewById(R.id.recurringCheckBox)
+        expenseAnimationView = findViewById(R.id.expenseAnimationView)
 
         setupDatePicker()
         setupTimePickers()
@@ -179,15 +184,29 @@ class AddExpenseActivity : AppCompatActivity() {
             isRecurring = isRecurring
         )
 
-        FirebaseFirestore.getInstance()
-            .collection("expenses")
-            .add(expense)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Expense saved", Toast.LENGTH_SHORT).show()
-                finish()
+        // Play animation first
+        expenseAnimationView.setSpeed(0.75f)
+        expenseAnimationView.visibility = View.VISIBLE
+        expenseAnimationView.playAnimation()
+
+        expenseAnimationView.addAnimatorListener(object : Animator.AnimatorListener {
+            override fun onAnimationEnd(animation: Animator) {
+                // Proceed with saving to Firestore after animation
+                FirebaseFirestore.getInstance()
+                    .collection("expenses")
+                    .add(expense)
+                    .addOnSuccessListener {
+                        Toast.makeText(this@AddExpenseActivity, "Expense saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this@AddExpenseActivity, "Error saving expense: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Error saving expense: ${e.message}", Toast.LENGTH_LONG).show()
-            }
+
+            override fun onAnimationStart(animation: Animator) {}
+            override fun onAnimationCancel(animation: Animator) {}
+            override fun onAnimationRepeat(animation: Animator) {}
+        })
     }
 }

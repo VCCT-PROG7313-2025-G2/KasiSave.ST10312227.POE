@@ -1,9 +1,33 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.KasiSave" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
-    </style>
+    <!-- Base app theme -->
+    <style name="Theme.KasiSave" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">#27AE60</item> <!-- Emerald Green -->
+        <item name="colorPrimaryVariant">#219653</item> <!-- Darker green -->
+        <item name="colorOnPrimary">#FFFFFF</item> <!-- Text/icons on green -->
 
-    <style name="Theme.KasiSave" parent="Base.Theme.KasiSave" />
+        <!-- Secondary/accent color -->
+        <item name="colorSecondary">#F1C40F</item> <!-- Golden yellow -->
+        <item name="colorSecondaryVariant">#D4AC0D</item>
+        <item name="colorOnSecondary">#000000</item> <!-- Text/icons on yellow -->
+
+        <!-- Backgrounds and surfaces -->
+        <item name="android:colorBackground">#F9F9F9</item> <!-- Clean white -->
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#2C3E50</item> <!-- Dark gray text -->
+        <item name="android:textColorPrimary">#2C3E50</item>
+
+        <!-- Error color -->
+        <item name="colorError">#E74C3C</item>
+        <item name="colorOnError">#FFFFFF</item>
+
+        <!-- Control element colors -->
+        <item name="colorControlNormal">#2C3E50</item>
+        <item name="colorControlActivated">#27AE60</item>
+        <item name="colorButtonNormal">#27AE60</item>
+
+        <!-- Status bar and nav bar -->
+        <item name="android:statusBarColor" tools:targetApi="l">#219653</item>
+        <item name="android:navigationBarColor" tools:targetApi="l">#27AE60</item>
+    </style>
 </resources>

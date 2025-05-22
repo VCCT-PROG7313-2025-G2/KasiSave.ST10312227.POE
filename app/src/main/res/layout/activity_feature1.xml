@@ -1,69 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/backround_colour">
+    android:background="@color/light_background"
+    android:padding="24dp">
 
+    <!-- Full-screen Lottie background animation -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottieAnimationView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/green_lightning"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Your existing content on top of Lottie -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:orientation="vertical"
-        android:layout_marginTop="50dp"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal">
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="100dp"
-                android:fontFamily="@font/aclonica"
-                android:gravity="center"
-                android:text="KASI SAVE"
-                android:textColor="#4CAF73"
-                android:textSize="50sp"
-                android:shadowColor="#000000"
-                android:shadowDx="0"
-                android:shadowDy="4"
-                android:shadowRadius="8" />
-        </LinearLayout>
+            android:layout_marginBottom="48dp"
+            android:fontFamily="@font/aclonica"
+            android:gravity="center"
+            android:text="KASI SAVE"
+            android:textColor="@color/green_primary"
+            android:textSize="42sp"
+            android:shadowColor="#33000000"
+            android:shadowDx="0"
+            android:shadowDy="4"
+            android:shadowRadius="6" />
 
         <ImageView
             android:id="@+id/imageView4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="260dp"
+            android:layout_height="260dp"
+            android:layout_marginBottom="32dp"
+            android:contentDescription="Piggy Bank"
+            android:scaleType="fitCenter"
             app:srcCompat="@drawable/piggy_bank" />
 
         <TextView
             android:id="@+id/textView5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
             android:fontFamily="@font/aclonica"
             android:gravity="center"
             android:text="SET AND TRACK SAVING GOALS!"
-            android:textColor="#F8FAF9"
-            android:textSize="24sp" />
+            android:textColor="@color/dark_gray"
+            android:textSize="20sp"
+            android:layout_marginBottom="32dp" />
 
         <RadioGroup
             android:id="@+id/radioGroup"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:orientation="horizontal"
-            android:layout_marginTop="50dp">
+            android:gravity="center">
 
             <RadioButton
                 android:id="@+id/radioButton2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:buttonTint="@color/green_primary"
                 android:checked="true"
                 android:clickable="false" />
 
@@ -71,30 +87,34 @@
                 android:id="@+id/radioButton5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:buttonTint="@color/green_primary"
                 android:clickable="false" />
 
             <RadioButton
                 android:id="@+id/radioButton6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:buttonTint="@color/green_primary"
                 android:clickable="false" />
 
             <RadioButton
                 android:id="@+id/radioButton4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:buttonTint="@color/green_primary"
                 android:clickable="false" />
         </RadioGroup>
 
-        <!-- Rounded "Next" Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/nextButton"
-            android:layout_width="200dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Next"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/rounded_button" />
+            android:textSize="16sp"
+            android:textColor="@color/colorOnPrimary"
+            app:cornerRadius="16dp"
+            app:backgroundTint="@color/green_primary"
+            android:layout_marginTop="24dp" />
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

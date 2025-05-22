@@ -43,9 +43,9 @@ class ExpensesActivity : AppCompatActivity() {
         adapter = ExpenseAdapter(emptyList())
         recyclerView.adapter = adapter
 
-        // ✅ Corrected key to match saved UID
+
         val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
-        userId = sharedPrefs.getString("user_uid", "") ?: ""
+        userId = sharedPrefs.getString("user_id", "") ?: ""
 
         if (userId.isEmpty()) {
             Toast.makeText(this, "Please log in again.", Toast.LENGTH_SHORT).show()

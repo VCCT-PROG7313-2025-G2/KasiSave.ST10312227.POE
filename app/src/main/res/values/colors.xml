@@ -5,7 +5,7 @@
 
     <!-- Greens -->
     <color name="green_card">#39714A</color>
-    <color name="green_primary">#4CAF50</color> <!-- Main Green -->
+
     <color name="green_dark">#388E3C</color>    <!-- Darker Green -->
     <color name="green_light">#C8E6C9</color>   <!-- Light Green -->
     <color name="green_background">#E8F5E9</color> <!-- Very light green for backgrounds -->
@@ -14,5 +14,28 @@
 
     <color name="teal_700">#018786</color>
     <color name="purple_500">#6200EE</color>
+
+
+
+    <color name="grey_text">#757575</color>
+    <color name="light_gray">#D3D3D3</color>
+        <color name="green_primary">#27AE60</color>
+        <color name="green_variant">#219653</color>
+        <color name="yellow_accent">#F1C40F</color>
+        <color name="dark_gray">#2C3E50</color>
+        <color name="light_background">#F9F9F9</color>
+        <color name="error_red">#E74C3C</color>
+
+
+
+
+    <color name="colorPrimary">#FFD60A</color>          <!-- Bright lightning yellow -->
+    <color name="colorPrimaryVariant">#FFB300</color>
+    <color name="colorAccent">#6DD5FA</color>           <!-- Cyan blue -->
+    <color name="colorBackground">#1E3C72</color>       <!-- Gradient dark blue -->
+    <color name="colorSurface">#2A5298</color>
+    <color name="colorOnPrimary">#FFFFFF</color>        <!-- White text -->
+    <color name="colorOnSurface">#E0F7FA</color>        <!-- Light text -->
+
 
 </resources>

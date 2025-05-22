@@ -1,9 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/backround_colour">
+    android:background="@color/light_background"
+    android:padding="24dp">
 
     <!-- App Title -->
     <TextView
@@ -13,13 +15,14 @@
         android:fontFamily="@font/aclonica"
         android:gravity="center"
         android:text="KASI SAVE"
-        android:textColor="#4CAF73"
-        android:textSize="50sp"
+        android:textColor="@color/green_primary"
+        android:textSize="40sp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"
         android:shadowColor="#000000"
         android:shadowDx="0"
-        android:shadowDy="4"
-        android:shadowRadius="8"
-        android:layout_marginTop="32dp" />
+        android:shadowDy="2"
+        android:shadowRadius="4" />
 
     <!-- Expenses Title -->
     <TextView
@@ -27,11 +30,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Expenses"
-        android:textColor="@color/black"
-        android:textSize="24sp"
+        android:textColor="@color/dark_gray"
+        android:textSize="22sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:layout_marginTop="12dp" />
+        android:layout_marginBottom="12dp" />
 
     <!-- Total Expenses -->
     <TextView
@@ -39,9 +42,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Total: R 0.00"
+        android:textColor="@color/dark_gray"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:layout_margin="16dp" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp" />
 
     <!-- No Expenses Message -->
     <TextView
@@ -61,24 +66,22 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingHorizontal="16dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="8dp" />
 
-    <!-- Search Buttons -->
-    <LinearLayout
+    <!-- Search Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSearchByDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <Button
-            android:id="@+id/btnSearchByDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Search Expenses" />
-
-
-    </LinearLayout>
+        android:text="Search Expenses"
+        android:textSize="16sp"
+        android:textColor="@color/colorOnPrimary"
+        app:cornerRadius="16dp"
+        app:backgroundTint="@color/green_primary"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp" />
 
     <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -89,6 +92,7 @@
         android:layout_margin="16dp"
         android:src="@android:drawable/ic_input_add"
         android:contentDescription="Add Expense"
+        app:backgroundTint="@color/green_primary"
         app:tint="@android:color/white" />
 
     <!-- Bottom Navigation -->
@@ -96,6 +100,8 @@
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
+        android:background="@color/light_background"
+        app:itemIconTint="@color/green_primary"
+        app:itemTextColor="@color/green_primary"
         app:menu="@menu/bottom_nav_menu" />
 </LinearLayout>
