@@ -29,5 +29,8 @@
         <!-- Status bar and nav bar -->
         <item name="android:statusBarColor" tools:targetApi="l">#219653</item>
         <item name="android:navigationBarColor" tools:targetApi="l">#27AE60</item>
+
+        <!-- Enable dark mode -->
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 </resources>

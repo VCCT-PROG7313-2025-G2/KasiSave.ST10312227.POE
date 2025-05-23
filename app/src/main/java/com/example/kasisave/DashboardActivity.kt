@@ -2,10 +2,11 @@ package com.example.kasisave
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
@@ -28,7 +29,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
-    private lateinit var logOutButton: Button
+    private lateinit var toolbar: Toolbar
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -39,12 +40,15 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
+        // Setup Toolbar
+        toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
         totalBalanceText = findViewById(R.id.totalBalanceAmount)
         budgetInfoText = findViewById(R.id.budgetInfoText)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         pieChart = findViewById(R.id.pieChart)
         barChart = findViewById(R.id.barChart)
-        logOutButton = findViewById(R.id.logoutButton)
 
         if (currentUserUid == null) {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -54,11 +58,30 @@ class DashboardActivity : AppCompatActivity() {
 
         setupBottomNavigation()
         loadDashboardData()
+    }
 
-        logOutButton.setOnClickListener {
-            auth.signOut()
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_dashboard, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_profile -> {
+                startActivity(Intent(this, ProfileActivity::class.java))
+                true
+            }
+            R.id.menu_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                true
+            }
+            R.id.menu_logout -> {
+                auth.signOut()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -71,21 +94,17 @@ class DashboardActivity : AppCompatActivity() {
                 val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
                 val year = calendar.get(Calendar.YEAR)
 
-                // Fetch total income
                 val incomeQuery = firestore.collection("incomes")
                     .whereEqualTo("userId", uid)
                 val incomeSnapshots = incomeQuery.get().await()
-                Log.d("DashboardActivity", "Fetched ${incomeSnapshots.size()} income records for UID: $uid")
 
                 val totalIncome = incomeSnapshots.documents.sumOf { it.getDouble("amount") ?: 0.0 }
 
-                // Fetch total expenses
                 val expenseQuery = firestore.collection("expenses")
                     .whereEqualTo("userId", uid)
                 val expenseSnapshots = expenseQuery.get().await()
                 val totalExpenses = expenseSnapshots.documents.sumOf { it.getDouble("amount") ?: 0.0 }
 
-                // Fetch current milestone
                 val milestoneQuery = firestore.collection("milestones")
                     .whereEqualTo("userId", uid)
                     .whereEqualTo("month", month)
@@ -110,7 +129,6 @@ class DashboardActivity : AppCompatActivity() {
                     • $budgetStatus
                 """.trimIndent()
 
-                // Expenses grouped by category
                 val categories = expenseSnapshots.documents.groupBy {
                     it.getString("category") ?: "Other"
                 }.map { (category, docs) ->
@@ -143,8 +161,7 @@ class DashboardActivity : AppCompatActivity() {
             valueTextSize = 14f
         }
 
-        val barData = BarData(dataSet)
-        barChart.data = barData
+        barChart.data = BarData(dataSet)
 
         barChart.xAxis.apply {
             valueFormatter = IndexAxisValueFormatter(labels)
@@ -184,9 +201,7 @@ class DashboardActivity : AppCompatActivity() {
         pieChart.setEntryLabelTextSize(12f)
         pieChart.setDrawEntryLabels(true)
 
-        val desc = Description()
-        desc.text = ""
-        pieChart.description = desc
+        pieChart.description = Description().apply { text = "" }
         pieChart.legend.isEnabled = true
 
         pieChart.animateY(1000)
