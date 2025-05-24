@@ -41,6 +41,7 @@
         <activity android:name=".SearchExpenseByDateActivity"/>
         <activity android:name=".SettingsActivity" />
         <activity android:name=".ProfileActivity" />
+        <activity android:name=".CategoriesActivity" />
 
         <meta-data
             android:name="preloaded_fonts"

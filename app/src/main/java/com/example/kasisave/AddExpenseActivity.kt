@@ -18,6 +18,7 @@ import androidx.core.content.FileProvider
 import com.airbnb.lottie.LottieAnimationView
 import com.example.kasisave.Expense
 import com.example.kasisave.R
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.File
 import java.text.SimpleDateFormat
@@ -39,16 +40,20 @@ class AddExpenseActivity : AppCompatActivity() {
 
     private var photoUri: Uri? = null
     private var photoFile: File? = null
-    private val CAMERA_PERMISSION_REQUEST_CODE = 1001
 
-    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) {
-            expenseImageView.setImageURI(photoUri)
-        } else {
-            photoUri = null
-            photoFile = null
+    private val CAMERA_PERMISSION_REQUEST_CODE = 1001
+    private val firestore = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+
+    private val takePicture =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                expenseImageView.setImageURI(photoUri)
+            } else {
+                photoUri = null
+                photoFile = null
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,10 +83,15 @@ class AddExpenseActivity : AppCompatActivity() {
     private fun setupDatePicker() {
         val calendar = Calendar.getInstance()
         dateEditText.setOnClickListener {
-            DatePickerDialog(this, { _, year, month, day ->
-                val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
-                dateEditText.setText(selectedDate)
-            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+            DatePickerDialog(
+                this,
+                { _, year, month, day ->
+                    dateEditText.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
         }
     }
 
@@ -92,21 +102,79 @@ class AddExpenseActivity : AppCompatActivity() {
 
     private fun showTimePickerDialog(target: EditText) {
         val calendar = Calendar.getInstance()
-        TimePickerDialog(this, { _, hour, minute ->
-            target.setText(String.format("%02d:%02d", hour, minute))
-        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
+        TimePickerDialog(
+            this,
+            { _, hour, minute ->
+                target.setText(String.format("%02d:%02d", hour, minute))
+            },
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE),
+            true
+        ).show()
     }
 
     private fun setupCategorySpinner() {
-        val categories = resources.getStringArray(R.array.expense_categories)
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        categorySpinner.adapter = adapter
+        // Start with default categories
+        val defaultCategories = resources.getStringArray(R.array.expense_categories).toMutableList()
+
+        // Fetch any user-added categories from Firestore
+        val uid = auth.currentUser?.uid
+        if (uid != null) {
+            firestore.collection("users")
+                .document(uid)
+                .collection("categories")
+                .get()
+                .addOnSuccessListener { snap ->
+                    snap.documents.forEach { doc ->
+                        doc.getString("name")?.let { name ->
+                            if (!defaultCategories.contains(name)) {
+                                defaultCategories.add(name)
+                            }
+                        }
+                    }
+                    // Populate spinner
+                    val adapter = ArrayAdapter(
+                        this,
+                        android.R.layout.simple_spinner_item,
+                        defaultCategories
+                    )
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    categorySpinner.adapter = adapter
+                }
+                .addOnFailureListener {
+                    Toast.makeText(
+                        this,
+                        "Failed to load categories",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    // Fallback to defaults only
+                    categorySpinner.adapter = ArrayAdapter(
+                        this,
+                        android.R.layout.simple_spinner_item,
+                        defaultCategories
+                    ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+                }
+        } else {
+            // No user: just show defaults
+            categorySpinner.adapter = ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_item,
+                defaultCategories
+            ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        }
     }
 
     private fun checkCameraPermissionAndLaunch() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_REQUEST_CODE
+            )
         } else {
             launchCamera()
         }
@@ -116,58 +184,59 @@ class AddExpenseActivity : AppCompatActivity() {
         try {
             val photoDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             photoFile = File.createTempFile("IMG_${System.currentTimeMillis()}", ".jpg", photoDir)
-            photoUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile!!)
+            photoUri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                photoFile!!
+            )
             takePicture.launch(photoUri)
         } catch (e: Exception) {
             Toast.makeText(this, "Error launching camera: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE
+            && grantResults.isNotEmpty()
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
             launchCamera()
         } else {
-            Toast.makeText(this, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Camera permission is required to take photos",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     private fun saveExpense() {
-        val dateString = dateEditText.text.toString()
-        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val parsedDate = try {
-            formatter.parse(dateString)
+        // Parse & validate inputs...
+        val dateMillis = try {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .parse(dateEditText.text.toString())!!.time
         } catch (e: Exception) {
-            null
-        }
-
-        if (parsedDate == null) {
-            Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Invalid date", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val dateMillis = parsedDate.time
-        val startTime = startTimeEditText.text.toString().takeIf { it.isNotBlank() }
-        val endTime = endTimeEditText.text.toString().takeIf { it.isNotBlank() }
-        val description = descriptionEditText.text.toString().takeIf { it.isNotBlank() }
-        val amountText = amountEditText.text.toString()
-        val amount = amountText.toDoubleOrNull()
-        val category = categorySpinner.selectedItem?.toString()?.takeIf { it.isNotBlank() } ?: ""
-        val isRecurring = recurringCheckBox.isChecked
-        val photoUriString = photoUri?.toString()
+        val amount = amountEditText.text.toString().toDoubleOrNull().also {
+            if (it == null) {
+                Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }!!
 
-        if (amount == null) {
-            Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
-            return
-        }
+        val category =
+            (categorySpinner.selectedItem as? String).takeIf { it?.isNotBlank() == true } ?: run {
+                Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-        if (category.isEmpty()) {
-            Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val userId = getSharedPreferences("kasisave_prefs", MODE_PRIVATE).getString("user_id", null)
-        if (userId == null) {
+        val userId = auth.currentUser?.uid ?: run {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show()
             return
         }
@@ -175,32 +244,34 @@ class AddExpenseActivity : AppCompatActivity() {
         val expense = Expense(
             userId = userId,
             dateMillis = dateMillis,
-            startTime = startTime,
-            endTime = endTime,
-            description = description,
+            startTime = startTimeEditText.text.toString().takeIf { it.isNotBlank() },
+            endTime = endTimeEditText.text.toString().takeIf { it.isNotBlank() },
+            description = descriptionEditText.text.toString().takeIf { it.isNotBlank() },
             amount = amount,
             category = category,
-            photoUri = photoUriString,
-            isRecurring = isRecurring
+            photoUri = photoUri?.toString(),
+            isRecurring = recurringCheckBox.isChecked
         )
 
-        // Play animation first
-        expenseAnimationView.setSpeed(0.75f)
+        // Play animation then save
+        expenseAnimationView.speed = 0.75f
         expenseAnimationView.visibility = View.VISIBLE
         expenseAnimationView.playAnimation()
-
         expenseAnimationView.addAnimatorListener(object : Animator.AnimatorListener {
             override fun onAnimationEnd(animation: Animator) {
-                // Proceed with saving to Firestore after animation
-                FirebaseFirestore.getInstance()
-                    .collection("expenses")
+                firestore.collection("expenses")
                     .add(expense)
                     .addOnSuccessListener {
-                        Toast.makeText(this@AddExpenseActivity, "Expense saved", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddExpenseActivity, "Expense saved", Toast.LENGTH_SHORT)
+                            .show()
                         finish()
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(this@AddExpenseActivity, "Error saving expense: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this@AddExpenseActivity,
+                            "Error saving: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
             }
 

@@ -13,7 +13,12 @@ import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -25,7 +30,8 @@ import kotlinx.coroutines.tasks.await
 import java.util.*
 import androidx.lifecycle.lifecycleScope
 
-class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class DashboardActivity : AppCompatActivity(),
+    NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var totalBalanceText: TextView
     private lateinit var budgetInfoText: TextView
@@ -45,41 +51,42 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
+        // Toolbar
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
+        // Drawer
         drawerLayout = findViewById(R.id.drawer_layout)
         navigationView = findViewById(R.id.navigation_view)
-        val toggle = ActionBarDrawerToggle(
+        ActionBarDrawerToggle(
             this, drawerLayout, toolbar,
             R.string.navigation_drawer_open, R.string.navigation_drawer_close
-        )
-        drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
+        ).also {
+            drawerLayout.addDrawerListener(it)
+            it.syncState()
+        }
         navigationView.setNavigationItemSelectedListener(this)
 
-        // ⬇️ Update Navigation Drawer Header with Username & Email
-        val headerView = navigationView.getHeaderView(0)
-        val usernameTextView = headerView.findViewById<TextView>(R.id.textViewUsername)
-        val emailTextView = headerView.findViewById<TextView>(R.id.textViewEmail)
-
-        val currentUser = auth.currentUser
-        val uid = currentUser?.uid
-        val fallbackEmail = currentUser?.email ?: "user@example.com"
-
-        if (uid != null) {
-            firestore.collection("users").document(uid).get()
-                .addOnSuccessListener { document ->
-                    val name = document.getString("name") ?: "User"
-                    usernameTextView.text = name
-                    emailTextView.text = fallbackEmail
+        // Drawer header: username & email
+        val header = navigationView.getHeaderView(0)
+        val usernameTv = header.findViewById<TextView>(R.id.textViewUsername)
+        val emailTv = header.findViewById<TextView>(R.id.textViewEmail)
+        auth.currentUser?.let { user ->
+            val uid = user.uid
+            val fallbackEmail = user.email ?: "user@example.com"
+            firestore.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    usernameTv.text = doc.getString("name") ?: "User"
+                    emailTv.text = fallbackEmail
                 }
                 .addOnFailureListener {
-                    usernameTextView.text = "User"
-                    emailTextView.text = fallbackEmail
+                    usernameTv.text = "User"
+                    emailTv.text = fallbackEmail
                 }
         }
 
+        // Views
         totalBalanceText = findViewById(R.id.totalBalanceAmount)
         budgetInfoText = findViewById(R.id.budgetInfoText)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
@@ -118,56 +125,79 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         return true
     }
 
+    private fun setupBottomNavigation() {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            val intent = when (item.itemId) {
+                R.id.navigation_dashboard -> null // stay here
+                R.id.navigation_expenses -> Intent(this, ExpensesActivity::class.java)
+                R.id.navigation_income -> Intent(this, IncomeActivity::class.java)
+                R.id.navigation_milestones -> Intent(this, MilestonesActivity::class.java)
+                R.id.navigation_categories -> Intent(this, CategoriesActivity::class.java)
+                else -> null
+            }
+            intent?.let {
+                startActivity(it)
+                overridePendingTransition(0, 0)
+                finish()
+            }
+            true
+        }
+        // Ensure Dashboard is selected by default
+        bottomNavigationView.selectedItemId = R.id.navigation_dashboard
+    }
+
     private fun loadDashboardData() {
         lifecycleScope.launch {
             try {
                 val uid = currentUserUid ?: return@launch
-                val calendar = Calendar.getInstance()
-                val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
-                val year = calendar.get(Calendar.YEAR)
+                val cal = Calendar.getInstance()
+                val month = (cal.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+                val year = cal.get(Calendar.YEAR)
 
-                val incomeQuery = firestore.collection("incomes")
+                // incomes
+                val incomes = firestore.collection("incomes")
                     .whereEqualTo("userId", uid)
-                val incomeSnapshots = incomeQuery.get().await()
-                val totalIncome = incomeSnapshots.documents.sumOf { it.getDouble("amount") ?: 0.0 }
+                    .get().await()
+                val totalIncome = incomes.documents.sumOf { it.getDouble("amount") ?: 0.0 }
 
-                val expenseQuery = firestore.collection("expenses")
+                // expenses
+                val expensesSnap = firestore.collection("expenses")
                     .whereEqualTo("userId", uid)
-                val expenseSnapshots = expenseQuery.get().await()
-                val totalExpenses = expenseSnapshots.documents.sumOf { it.getDouble("amount") ?: 0.0 }
+                    .get().await()
+                val totalExpenses = expensesSnap.documents.sumOf { it.getDouble("amount") ?: 0.0 }
 
-                val milestoneQuery = firestore.collection("milestones")
+                // milestone
+                val milestoneSnap = firestore.collection("milestones")
                     .whereEqualTo("userId", uid)
                     .whereEqualTo("month", month)
                     .whereEqualTo("year", year)
                     .limit(1)
-                val milestoneSnapshot = milestoneQuery.get().await()
-                val currentMilestone = milestoneSnapshot.documents.firstOrNull()
-                val budgetTarget = currentMilestone?.getDouble("targetAmount") ?: totalIncome
+                    .get().await()
+                val milestone = milestoneSnap.documents.firstOrNull()
+                val target = milestone?.getDouble("targetAmount") ?: totalIncome
 
-                val remainingBudget = budgetTarget - totalExpenses
-                val budgetStatus = when {
-                    remainingBudget < 0 -> "⚠️ Over budget by R${"%.2f".format(-remainingBudget)}"
-                    remainingBudget == 0.0 -> "⚠️ Reached budget limit."
-                    else -> "✅ R${"%.2f".format(remainingBudget)} remaining."
+                val remaining = target - totalExpenses
+                val status = when {
+                    remaining < 0 -> "⚠️ Over budget by R${"%.2f".format(-remaining)}"
+                    remaining == 0.0 -> "⚠️ Reached budget limit."
+                    else -> "✅ R${"%.2f".format(remaining)} remaining."
                 }
 
                 totalBalanceText.text = "R${"%.2f".format(totalIncome - totalExpenses)}"
                 budgetInfoText.text = """
                     Budget Overview:
-                    • Target: R${"%.2f".format(budgetTarget)}
+                    • Target: R${"%.2f".format(target)}
                     • Expenses: R${"%.2f".format(totalExpenses)}
-                    • $budgetStatus
+                    • $status
                 """.trimIndent()
 
-                val categories = expenseSnapshots.documents.groupBy {
-                    it.getString("category") ?: "Other"
-                }.map { (category, docs) ->
-                    category to docs.sumOf { it.getDouble("amount") ?: 0.0 }
-                }
-
+                // pie & bar
+                setupCategoryPieChart(
+                    expensesSnap.documents
+                        .groupBy { it.getString("category") ?: "Other" }
+                        .map { it.key to it.value.sumOf { d -> d.getDouble("amount") ?: 0.0 } }
+                )
                 setupIncomeVsExpenseBarChart(totalIncome, totalExpenses)
-                setupCategoryPieChart(categories)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -178,79 +208,49 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     }
 
     private fun setupIncomeVsExpenseBarChart(income: Double, expenses: Double) {
-        val entries = listOf(
-            BarEntry(0f, income.toFloat()),
-            BarEntry(1f, expenses.toFloat())
-        )
+        val entries = listOf(BarEntry(0f, income.toFloat()), BarEntry(1f, expenses.toFloat()))
         val labels = listOf("Income", "Expenses")
-        val dataSet = BarDataSet(entries, "Income vs Expenses").apply {
+        val ds = BarDataSet(entries, "Income vs Expenses").apply {
             colors = listOf(
                 resources.getColor(R.color.teal_700, null),
                 resources.getColor(R.color.purple_500, null)
             )
             valueTextSize = 14f
         }
-
-        barChart.data = BarData(dataSet)
-        barChart.xAxis.apply {
-            valueFormatter = IndexAxisValueFormatter(labels)
-            position = XAxis.XAxisPosition.BOTTOM
-            granularity = 1f
-            setDrawGridLines(false)
+        barChart.apply {
+            data = BarData(ds)
+            xAxis.apply {
+                valueFormatter = IndexAxisValueFormatter(labels)
+                position = XAxis.XAxisPosition.BOTTOM
+                granularity = 1f; setDrawGridLines(false)
+            }
+            axisLeft.axisMinimum = 0f
+            axisRight.isEnabled = false
+            description.isEnabled = false
+            legend.isEnabled = true
+            setFitBars(true)
+            animateY(1000); invalidate()
         }
-
-        barChart.axisLeft.axisMinimum = 0f
-        barChart.axisRight.isEnabled = false
-        barChart.description.isEnabled = false
-        barChart.legend.isEnabled = true
-        barChart.setFitBars(true)
-        barChart.animateY(1000)
-        barChart.invalidate()
     }
 
     private fun setupCategoryPieChart(categoryTotals: List<Pair<String, Double>>) {
-        val entries = categoryTotals.map { (category, total) ->
-            PieEntry(total.toFloat(), category)
-        }
-
-        val dataSet = PieDataSet(entries, "Expense Breakdown").apply {
+        val entries = categoryTotals.map { PieEntry(it.second.toFloat(), it.first) }
+        val ds = PieDataSet(entries, "Expense Breakdown").apply {
             colors = ColorTemplate.MATERIAL_COLORS.toList()
             valueTextSize = 14f
             valueTextColor = resources.getColor(android.R.color.white, null)
         }
-
-        val data = PieData(dataSet)
-
-        pieChart.data = data
-        pieChart.setUsePercentValues(true)
-        pieChart.setDrawHoleEnabled(true)
-        pieChart.holeRadius = 40f
-        pieChart.setTransparentCircleRadius(45f)
-        pieChart.setEntryLabelColor(resources.getColor(android.R.color.white, null))
-        pieChart.setEntryLabelTextSize(12f)
-        pieChart.setDrawEntryLabels(true)
-
-        pieChart.description = Description().apply { text = "" }
-        pieChart.legend.isEnabled = true
-        pieChart.animateY(1000)
-        pieChart.invalidate()
-    }
-
-    private fun setupBottomNavigation() {
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            val intent = when (item.itemId) {
-                R.id.navigation_dashboard -> return@setOnItemSelectedListener true
-                R.id.navigation_expenses -> Intent(this, ExpensesActivity::class.java)
-                R.id.navigation_income -> Intent(this, IncomeActivity::class.java)
-                R.id.navigation_milestones -> Intent(this, MilestonesActivity::class.java)
-                else -> null
-            }
-            intent?.let {
-                startActivity(it)
-                overridePendingTransition(0, 0)
-                finish()
-            }
-            true
+        pieChart.apply {
+            data = PieData(ds)
+            setUsePercentValues(true)
+            setDrawHoleEnabled(true); holeRadius = 40f
+            setTransparentCircleRadius(45f)
+            setEntryLabelColor(resources.getColor(android.R.color.white, null))
+            setEntryLabelTextSize(12f)
+            setDrawEntryLabels(true)
+            description = Description().apply { text = "" }
+            legend.isEnabled = true
+            animateY(1000); invalidate()
         }
     }
 }
