@@ -2,8 +2,11 @@
     <string name="app_name">KasiSave</string>
 <string name="title_dashboard">Dashboard</string>
     <string name="title_income">Income</string>
+    <string name="title_categories">Categories</string>
 <string name="title_milestones">Milestones</string>
 <string name="title_expenses">Expenses</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
     <string-array name="income_categories">
         <item>Salary</item>
         <item>Bonus</item>

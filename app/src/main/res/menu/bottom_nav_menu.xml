@@ -7,6 +7,12 @@
         android:icon="@drawable/home_icon"
         android:title="@string/title_dashboard" />
 
+    <!-- Categories Item -->
+    <item
+        android:id="@+id/navigation_categories"
+        android:icon="@drawable/categories_icon"
+        android:title="@string/title_categories" />
+
     <!-- Income Item -->
     <item
         android:id="@+id/navigation_income"

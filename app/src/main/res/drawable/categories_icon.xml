@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24dp" android:viewportHeight="360" android:viewportWidth="540" android:width="24dp">
+      
+    <path android:fillColor="#00000000" android:pathData="M300.5,76.5C300.32,71.66 301.3,66.67 297.55,62.45C294.91,59.48 291.75,58.49 288,58.49C241.67,58.5 195.33,58.46 149,58.53C139.84,58.54 136,62.7 136,72C136,134.83 136,197.67 136,260.5C136,272.13 139.37,275.5 151,275.5C152,275.5 153,275.5 154,275.5" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="7.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M319.5,162C319.5,137.5 319.5,113 319.5,88.5C319.5,79.99 317.5,78 309,78C261,78 213,78.08 165,77.89C159.51,77.87 156.07,80.14 155.51,87C155.43,87.99 155.5,89 155.5,90C155.5,149.5 155.56,209 155.39,268.5C155.38,274 155.47,279.5 155.52,285C155.59,291.63 159,294.99 165.5,294.99C213.67,295 261.83,295 310,294.99C316.57,294.99 319.44,292.11 319.49,285.5C319.53,281.17 319.5,276.83 319.5,272.5" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="7.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M319,162C315.51,164.33 311.61,162.76 308,162.84C284.94,163.38 264.5,181.68 258.69,201.91C251.97,225.35 263.39,253.5 283.94,264.11C293.84,269.22 303.81,271.59 315.01,271.25C322.99,271.01 329.49,267.59 336.51,265.04C346.32,261.48 351.11,252.27 358.5,246C359.03,239.91 362.83,234.92 364.06,229.01C369.97,200.55 354.24,171.91 323.48,164.09C322.01,163.72 320.85,162.95 319.5,162.5" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="7.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M359,246.5C369.45,253.76 378.99,262.18 388.98,270.02C393.26,273.38 397.34,276.99 401.5,280.5C407.45,285.52 407,293.08 402.07,299.06C397.73,304.33 388.76,305.15 383.09,299.91C374.26,291.76 365.97,283.03 357.51,274.49C353.28,270.22 349.17,265.83 345,261.5" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="7.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M290,105C289.15,103.96 287.99,104.53 287,104.53C253.33,104.49 219.67,104.5 186,104.51C185.33,104.51 184.67,104.67 184,104.75" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="8.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M184.5,136.75C185.49,137.83 186.79,137.49 188,137.49C221.33,137.5 254.67,137.5 288,137.49C288.68,137.49 289.5,137.82 290,137" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="8.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M271,268C242.33,268 213.67,268 185,268" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="7.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M269.5,170C241.33,170 213.17,170 185,170" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="7.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M252.5,235C229.67,235.95 206.83,235.53 184,235.25" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="8.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M250.5,202.5C232,202.5 213.5,202.48 195,202.52C191.67,202.53 188.3,202.11 185,203" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="8.000000"/>
+      
+    <path android:fillColor="#00000000" android:pathData="M276,208C273.06,219.82 275.33,230.51 283.02,239.98C284.2,241.44 285.67,242.67 287,244" android:strokeColor="#000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeWidth="7.000000"/>
+    
+</vector>
