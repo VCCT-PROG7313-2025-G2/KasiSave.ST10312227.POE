@@ -74,6 +74,14 @@ class ExpensesActivity : AppCompatActivity() {
                     finish()
                     true
                 }
+                R.id.navigation_categories -> {
+                    startActivity(Intent(this, CategoriesActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
                 R.id.navigation_income -> {
                     val intent = Intent(this, IncomeActivity::class.java)
                     intent.putExtra("userId", userId)

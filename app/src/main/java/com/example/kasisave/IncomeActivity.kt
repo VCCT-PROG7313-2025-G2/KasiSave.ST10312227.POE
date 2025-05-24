@@ -190,22 +190,46 @@ class IncomeActivity : AppCompatActivity() {
 
     private fun setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener { item ->
-            val intent = when (item.itemId) {
-                R.id.navigation_dashboard -> null // stay here
-                R.id.navigation_expenses -> Intent(this, ExpensesActivity::class.java)
-                R.id.navigation_income -> Intent(this, IncomeActivity::class.java)
-                R.id.navigation_milestones -> Intent(this, MilestonesActivity::class.java)
-                R.id.navigation_categories -> Intent(this, CategoriesActivity::class.java)
-                else -> null
-            }
-            intent?.let {
-                startActivity(it)
+            when (item.itemId) {
+                R.id.navigation_dashboard -> {
+                    startActivity(Intent(this, DashboardActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+
+                R.id.navigation_categories -> {
+                    startActivity(Intent(this, CategoriesActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+
+                R.id.navigation_expenses -> {
+                    startActivity(Intent(this, ExpensesActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+
+                R.id.navigation_income -> true
+
+               R.id.navigation_milestones -> {
+                val intent = Intent(this, MilestonesActivity::class.java)
+                intent.putExtra("userId", userId)
+                startActivity(intent)
                 overridePendingTransition(0, 0)
                 finish()
+                true
             }
-            true
+                else -> false
+            }
         }
-        // Ensure Dashboard is selected by default
-        bottomNavigationView.selectedItemId = R.id.navigation_dashboard
     }
 }

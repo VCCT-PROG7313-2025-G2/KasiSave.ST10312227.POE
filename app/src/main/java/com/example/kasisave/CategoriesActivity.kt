@@ -1,11 +1,13 @@
 package com.example.kasisave
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kasisave.databinding.ActivityCategoriesBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -17,29 +19,34 @@ class CategoriesActivity : AppCompatActivity() {
     private val auth = FirebaseAuth.getInstance()
     private lateinit var adapter: CategoriesAdapter
     private var listener: ListenerRegistration? = null
+    private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var userId: String // <-- FIXED: Declare userId properly
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCategoriesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1) Prepare adapter & RecyclerView
+        bottomNavigationView = binding.bottomNavigation
+        setupBottomNavigation()
+
+        // Prepare adapter & RecyclerView
         adapter = CategoriesAdapter(mutableListOf())
         binding.rvCategories.layoutManager = LinearLayoutManager(this)
         binding.rvCategories.adapter = adapter
 
-        // 2) Load defaults and start listening for user categories
+        // Load defaults and start listening for user categories
         val defaults = resources.getStringArray(R.array.expense_categories).toList()
-        val uid = auth.currentUser?.uid ?: run {
+        userId = auth.currentUser?.uid ?: run {
             Toast.makeText(this, "Not logged in", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        Log.d("CategoriesDebug", "User UID: $uid")
+        Log.d("CategoriesDebug", "User UID: $userId")
 
         listener = firestore.collection("users")
-            .document(uid)
+            .document(userId)
             .collection("categories")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -54,7 +61,6 @@ class CategoriesActivity : AppCompatActivity() {
                     Log.d("CategoriesDebug", "Fetched ${snapshot.documents.size} category documents.")
                 }
 
-                // Extract firestore names
                 val userNames = snapshot
                     ?.documents
                     .orEmpty()
@@ -67,16 +73,14 @@ class CategoriesActivity : AppCompatActivity() {
                 Log.d("CategoriesDebug", "userNames from Firestore: $userNames")
                 Log.d("CategoriesDebug", "defaults from XML: $defaults")
 
-                // Merge: defaults first, then any user adds that aren’t in defaults
                 val combined = defaults + userNames.filter { it !in defaults }
 
                 Log.d("CategoriesDebug", "Final combined list: $combined")
 
-                // Update the adapter
                 adapter.update(combined)
             }
 
-        // 3) Add new category
+        // Add new category
         binding.btnAddCategory.setOnClickListener {
             val name = binding.etCategoryName.text.toString().trim()
             if (name.isEmpty()) {
@@ -87,7 +91,7 @@ class CategoriesActivity : AppCompatActivity() {
             Log.d("CategoriesDebug", "Adding category: $name")
 
             firestore.collection("users")
-                .document(uid)
+                .document(userId)
                 .collection("categories")
                 .add(mapOf("name" to name))
                 .addOnSuccessListener {
@@ -105,5 +109,46 @@ class CategoriesActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         listener?.remove()
+    }
+
+    private fun setupBottomNavigation() {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_dashboard -> {
+                    startActivity(Intent(this, DashboardActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_categories -> {
+                    startActivity(Intent(this, CategoriesActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_expenses -> {
+                    startActivity(Intent(this, ExpensesActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_income -> {
+                    startActivity(Intent(this, IncomeActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_milestones -> true
+                else -> false
+            }
+        }
     }
 }

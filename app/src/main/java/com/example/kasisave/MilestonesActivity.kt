@@ -179,6 +179,14 @@ class MilestonesActivity : AppCompatActivity() {
                     finish()
                     true
                 }
+                R.id.navigation_categories -> {
+                    startActivity(Intent(this, CategoriesActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
                 R.id.navigation_expenses -> {
                     startActivity(Intent(this, ExpensesActivity::class.java).apply {
                         putExtra("userId", userId)
