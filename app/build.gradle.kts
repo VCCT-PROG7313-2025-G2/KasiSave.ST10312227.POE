@@ -18,7 +18,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    
+
         buildFeatures {
             viewBinding=true
         }
@@ -49,11 +49,7 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation ("com.google.firebase:firebase-auth-ktx:22.1.1")
 
-    // Remove Room dependencies (commented out or delete)
-    // val roomVersion = "2.6.1"
-    // implementation("androidx.room:room-runtime:$roomVersion")
-    // kapt("androidx.room:room-compiler:$roomVersion")
-    // implementation("androidx.room:room-ktx:$roomVersion")
+
     implementation ("com.google.firebase:firebase-storage:20.3.0")
     implementation ("com.google.firebase:firebase-storage-ktx:20.3.0")
 
@@ -77,6 +73,7 @@ dependencies {
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
     // Firebase (BOM manages versions)
+    implementation ("com.google.firebase:firebase-storage:20.3.0")
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
 

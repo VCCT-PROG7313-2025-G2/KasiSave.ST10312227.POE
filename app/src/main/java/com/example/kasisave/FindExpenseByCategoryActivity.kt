@@ -103,7 +103,7 @@ class FindExpenseByCategoryActivity : AppCompatActivity() {
             }
         }
 
-        adapter.updateData(expenses)
+       // adapter.updateData(expenses)
 
         val total = expenses.sumOf { it.amount }
         totalCostTextView.text = "Total: R${"%.2f".format(total)}"

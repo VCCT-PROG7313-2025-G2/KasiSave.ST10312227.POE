@@ -43,7 +43,6 @@ class ExpensesActivity : AppCompatActivity() {
         adapter = ExpenseAdapter(emptyList())
         recyclerView.adapter = adapter
 
-
         val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
         userId = sharedPrefs.getString("user_id", "") ?: ""
 
@@ -67,9 +66,9 @@ class ExpensesActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_dashboard -> {
-                    val intent = Intent(this, DashboardActivity::class.java)
-                    intent.putExtra("userId", userId)
-                    startActivity(intent)
+                    startActivity(Intent(this, DashboardActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
                     overridePendingTransition(0, 0)
                     finish()
                     true
@@ -83,18 +82,18 @@ class ExpensesActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_income -> {
-                    val intent = Intent(this, IncomeActivity::class.java)
-                    intent.putExtra("userId", userId)
-                    startActivity(intent)
+                    startActivity(Intent(this, IncomeActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
                     overridePendingTransition(0, 0)
                     finish()
                     true
                 }
                 R.id.navigation_expenses -> true
                 R.id.navigation_milestones -> {
-                    val intent = Intent(this, MilestonesActivity::class.java)
-                    intent.putExtra("userId", userId)
-                    startActivity(intent)
+                    startActivity(Intent(this, MilestonesActivity::class.java).apply {
+                        putExtra("userId", userId)
+                    })
                     overridePendingTransition(0, 0)
                     finish()
                     true
@@ -133,7 +132,7 @@ class ExpensesActivity : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Error loading expenses: ${e.message}", Toast.LENGTH_LONG).show()
-                e.printStackTrace() // Log full error to Logcat
+                e.printStackTrace()
             }
     }
 }

@@ -1,22 +1,21 @@
 package com.example.kasisave
 
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.*
 
 class ExpenseAdapter(private var expenses: List<Expense>) :
     RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder>() {
 
-    // Date formatter for displaying the timestamp
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val categoryTextView: TextView = itemView.findViewById(R.id.textViewCategory)
         val amountTextView: TextView = itemView.findViewById(R.id.textViewAmount)
         val dateTextView: TextView = itemView.findViewById(R.id.textViewDate)
@@ -35,19 +34,19 @@ class ExpenseAdapter(private var expenses: List<Expense>) :
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
 
-        // Set the formatted date
-        val formattedDate = dateFormatter.format(Date(expense.dateMillis))
         holder.categoryTextView.text = "Category: ${expense.category}"
         holder.amountTextView.text = "Amount: R %.2f".format(expense.amount)
-        holder.dateTextView.text = "Date: $formattedDate"
+        holder.dateTextView.text = "Date: ${dateFormatter.format(Date(expense.dateMillis))}"
         holder.descriptionTextView.text = "Description: ${expense.description}"
         holder.timeTextView.text = "Time: ${expense.startTime} - ${expense.endTime}"
         holder.recurringTextView.text = if (expense.isRecurring) "Recurring: Yes" else "Recurring: No"
 
-        // Show photo if available
-        if (!expense.photoUri.isNullOrEmpty()) {
+        // Load image using Glide if URI is present
+        if (!expense.photoUri.isNullOrBlank()) {
             holder.photoImageView.visibility = View.VISIBLE
-            holder.photoImageView.setImageURI(Uri.parse(expense.photoUri))
+            Glide.with(holder.itemView.context)
+                .load(expense.photoUri)
+                .into(holder.photoImageView)
         } else {
             holder.photoImageView.visibility = View.GONE
         }
@@ -55,25 +54,16 @@ class ExpenseAdapter(private var expenses: List<Expense>) :
 
     override fun getItemCount(): Int = expenses.size
 
-    // Update the list of expenses in the adapter
-    fun updateData(newExpenses: List<Expense>) {
-        expenses = newExpenses
-        notifyDataSetChanged()
-    }
-
-    // Method to filter expenses based on a date range (startDate and endDate in milliseconds)
-    fun filterExpensesByDate(startDate: Long, endDate: Long) {
-        val filteredExpenses = expenses.filter {
-            val expenseDate = it.dateMillis
-            expenseDate >= startDate && expenseDate <= endDate
-        }
-        expenses = filteredExpenses
-        notifyDataSetChanged()
-    }
-
-    // Optionally, set expenses directly if needed
     fun setExpenses(newExpenses: List<Expense>) {
         expenses = newExpenses
+        notifyDataSetChanged()
+    }
+
+    fun filterExpensesByDate(startDate: Long, endDate: Long) {
+        val filteredExpenses = expenses.filter {
+            it.dateMillis in startDate..endDate
+        }
+        expenses = filteredExpenses
         notifyDataSetChanged()
     }
 }

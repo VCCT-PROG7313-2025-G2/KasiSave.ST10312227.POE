@@ -1,13 +1,13 @@
 package com.example.kasisave.activities
 
 import android.Manifest
-import android.animation.Animator
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +20,7 @@ import com.example.kasisave.Expense
 import com.example.kasisave.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -42,24 +43,25 @@ class AddExpenseActivity : AppCompatActivity() {
     private var photoFile: File? = null
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 1001
+
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
-    private val takePicture =
-        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                expenseImageView.setImageURI(photoUri)
-            } else {
-                photoUri = null
-                photoFile = null
-            }
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && photoUri != null) {
+            expenseImageView.setImageURI(photoUri)
+        } else {
+            Toast.makeText(this, "Photo capture failed", Toast.LENGTH_SHORT).show()
+            photoUri = null
+            photoFile = null
         }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
 
-        // Bind Views
         dateEditText = findViewById(R.id.dateEditText)
         startTimeEditText = findViewById(R.id.startTimeEditText)
         endTimeEditText = findViewById(R.id.endTimeEditText)
@@ -85,9 +87,7 @@ class AddExpenseActivity : AppCompatActivity() {
         dateEditText.setOnClickListener {
             DatePickerDialog(
                 this,
-                { _, year, month, day ->
-                    dateEditText.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
-                },
+                { _, year, month, day -> dateEditText.setText("%04d-%02d-%02d".format(year, month + 1, day)) },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
@@ -104,9 +104,7 @@ class AddExpenseActivity : AppCompatActivity() {
         val calendar = Calendar.getInstance()
         TimePickerDialog(
             this,
-            { _, hour, minute ->
-                target.setText(String.format("%02d:%02d", hour, minute))
-            },
+            { _, hour, minute -> target.setText("%02d:%02d".format(hour, minute)) },
             calendar.get(Calendar.HOUR_OF_DAY),
             calendar.get(Calendar.MINUTE),
             true
@@ -114,67 +112,37 @@ class AddExpenseActivity : AppCompatActivity() {
     }
 
     private fun setupCategorySpinner() {
-        // Start with default categories
         val defaultCategories = resources.getStringArray(R.array.expense_categories).toMutableList()
-
-        // Fetch any user-added categories from Firestore
         val uid = auth.currentUser?.uid
         if (uid != null) {
-            firestore.collection("users")
-                .document(uid)
-                .collection("categories")
+            firestore.collection("users").document(uid).collection("categories")
                 .get()
-                .addOnSuccessListener { snap ->
-                    snap.documents.forEach { doc ->
+                .addOnSuccessListener { snapshot ->
+                    snapshot.documents.forEach { doc ->
                         doc.getString("name")?.let { name ->
-                            if (!defaultCategories.contains(name)) {
-                                defaultCategories.add(name)
-                            }
+                            if (!defaultCategories.contains(name)) defaultCategories.add(name)
                         }
                     }
-                    // Populate spinner
-                    val adapter = ArrayAdapter(
-                        this,
-                        android.R.layout.simple_spinner_item,
-                        defaultCategories
-                    )
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    categorySpinner.adapter = adapter
+                    populateSpinner(defaultCategories)
                 }
                 .addOnFailureListener {
-                    Toast.makeText(
-                        this,
-                        "Failed to load categories",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    // Fallback to defaults only
-                    categorySpinner.adapter = ArrayAdapter(
-                        this,
-                        android.R.layout.simple_spinner_item,
-                        defaultCategories
-                    ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+                    Toast.makeText(this, "Failed to load custom categories", Toast.LENGTH_SHORT).show()
+                    populateSpinner(defaultCategories)
                 }
         } else {
-            // No user: just show defaults
-            categorySpinner.adapter = ArrayAdapter(
-                this,
-                android.R.layout.simple_spinner_item,
-                defaultCategories
-            ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            populateSpinner(defaultCategories)
         }
     }
 
+    private fun populateSpinner(categories: List<String>) {
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = adapter
+    }
+
     private fun checkCameraPermissionAndLaunch() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CAMERA),
-                CAMERA_PERMISSION_REQUEST_CODE
-            )
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
         } else {
             launchCamera()
         }
@@ -184,63 +152,86 @@ class AddExpenseActivity : AppCompatActivity() {
         try {
             val photoDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             photoFile = File.createTempFile("IMG_${System.currentTimeMillis()}", ".jpg", photoDir)
-            photoUri = FileProvider.getUriForFile(
-                this,
-                "${packageName}.fileprovider",
-                photoFile!!
-            )
+            photoUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile!!)
             takePicture.launch(photoUri)
         } catch (e: Exception) {
             Toast.makeText(this, "Error launching camera: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e("AddExpense", "launchCamera error: ", e)
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE
-            && grantResults.isNotEmpty()
-            && grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             launchCamera()
         } else {
-            Toast.makeText(
-                this,
-                "Camera permission is required to take photos",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun saveExpense() {
-        // Parse & validate inputs...
         val dateMillis = try {
-            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                .parse(dateEditText.text.toString())!!.time
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateEditText.text.toString())!!.time
         } catch (e: Exception) {
             Toast.makeText(this, "Invalid date", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val amount = amountEditText.text.toString().toDoubleOrNull().also {
-            if (it == null) {
-                Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
-                return
-            }
-        }!!
-
-        val category =
-            (categorySpinner.selectedItem as? String).takeIf { it?.isNotBlank() == true } ?: run {
-                Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-        val userId = auth.currentUser?.uid ?: run {
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show()
+        val amount = amountEditText.text.toString().toDoubleOrNull() ?: run {
+            Toast.makeText(this, "Enter a valid amount", Toast.LENGTH_SHORT).show()
             return
         }
 
+        val category = categorySpinner.selectedItem?.toString()?.takeIf { it.isNotBlank() } ?: run {
+            Toast.makeText(this, "Select a category", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userId = auth.currentUser?.uid ?: run {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        expenseAnimationView.speed = 1.0f
+        expenseAnimationView.visibility = View.VISIBLE
+        expenseAnimationView.playAnimation()
+        saveButton.isEnabled = false
+
+        if (photoFile != null && photoFile!!.exists()) {
+            uploadImageToFirebase(userId, dateMillis, amount, category)
+        } else {
+            saveExpenseToFirestore(userId, dateMillis, amount, category, null)
+        }
+    }
+
+    private fun uploadImageToFirebase(userId: String, dateMillis: Long, amount: Double, category: String) {
+        val storageRef = storage.reference.child("expense_images/$userId/${photoFile!!.name}")
+        val uploadTask = storageRef.putFile(Uri.fromFile(photoFile!!))
+
+        uploadTask
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    saveExpenseToFirestore(userId, dateMillis, amount, category, uri.toString())
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Failed to get image URL", Toast.LENGTH_SHORT).show()
+                    expenseAnimationView.visibility = View.GONE
+                    saveButton.isEnabled = true
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show()
+                expenseAnimationView.visibility = View.GONE
+                saveButton.isEnabled = true
+            }
+    }
+
+    private fun saveExpenseToFirestore(
+        userId: String,
+        dateMillis: Long,
+        amount: Double,
+        category: String,
+        downloadUrl: String?
+    ) {
         val expense = Expense(
             userId = userId,
             dateMillis = dateMillis,
@@ -249,35 +240,21 @@ class AddExpenseActivity : AppCompatActivity() {
             description = descriptionEditText.text.toString().takeIf { it.isNotBlank() },
             amount = amount,
             category = category,
-            photoUri = photoUri?.toString(),
+            photoUri = downloadUrl,
             isRecurring = recurringCheckBox.isChecked
         )
 
-        // Play animation then save
-        expenseAnimationView.speed = 0.75f
-        expenseAnimationView.visibility = View.VISIBLE
-        expenseAnimationView.playAnimation()
-        expenseAnimationView.addAnimatorListener(object : Animator.AnimatorListener {
-            override fun onAnimationEnd(animation: Animator) {
-                firestore.collection("expenses")
-                    .add(expense)
-                    .addOnSuccessListener {
-                        Toast.makeText(this@AddExpenseActivity, "Expense saved", Toast.LENGTH_SHORT)
-                            .show()
-                        finish()
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(
-                            this@AddExpenseActivity,
-                            "Error saving: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+        firestore.collection("expenses")
+            .add(expense)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Expense saved", Toast.LENGTH_SHORT).show()
+                expenseAnimationView.visibility = View.GONE
+                finish()
             }
-
-            override fun onAnimationStart(animation: Animator) {}
-            override fun onAnimationCancel(animation: Animator) {}
-            override fun onAnimationRepeat(animation: Animator) {}
-        })
+            .addOnFailureListener {
+                Toast.makeText(this, "Error saving expense: ${it.message}", Toast.LENGTH_LONG).show()
+                expenseAnimationView.visibility = View.GONE
+                saveButton.isEnabled = true
+            }
     }
 }
