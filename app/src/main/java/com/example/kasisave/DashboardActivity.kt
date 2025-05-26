@@ -3,6 +3,7 @@ package com.example.kasisave
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -13,12 +14,7 @@ import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -51,13 +47,12 @@ class DashboardActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        // Toolbar
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        // Drawer
         drawerLayout = findViewById(R.id.drawer_layout)
         navigationView = findViewById(R.id.navigation_view)
+
         ActionBarDrawerToggle(
             this, drawerLayout, toolbar,
             R.string.navigation_drawer_open, R.string.navigation_drawer_close
@@ -65,26 +60,10 @@ class DashboardActivity : AppCompatActivity(),
             drawerLayout.addDrawerListener(it)
             it.syncState()
         }
+
         navigationView.setNavigationItemSelectedListener(this)
 
-        // Drawer header: username & email
-        val header = navigationView.getHeaderView(0)
-        val usernameTv = header.findViewById<TextView>(R.id.textViewUsername)
-        val emailTv = header.findViewById<TextView>(R.id.textViewEmail)
-        auth.currentUser?.let { user ->
-            val uid = user.uid
-            val fallbackEmail = user.email ?: "user@example.com"
-            firestore.collection("users").document(uid)
-                .get()
-                .addOnSuccessListener { doc ->
-                    usernameTv.text = doc.getString("name") ?: "User"
-                    emailTv.text = fallbackEmail
-                }
-                .addOnFailureListener {
-                    usernameTv.text = "User"
-                    emailTv.text = fallbackEmail
-                }
-        }
+        updateNavigationHeader()
 
         // Views
         totalBalanceText = findViewById(R.id.totalBalanceAmount)
@@ -101,6 +80,46 @@ class DashboardActivity : AppCompatActivity(),
 
         setupBottomNavigation()
         loadDashboardData()
+    }
+
+    private fun updateNavigationHeader() {
+        val headerView = navigationView.getHeaderView(0)
+        val profileImage = headerView.findViewById<ImageView>(R.id.imageViewProfile)
+        val usernameText = headerView.findViewById<TextView>(R.id.textViewUsername)
+        val emailText = headerView.findViewById<TextView>(R.id.textViewEmail)
+
+        val user = FirebaseAuth.getInstance().currentUser
+        val firestore = FirebaseFirestore.getInstance()
+
+        if (user != null) {
+            val userId = user.uid
+
+            firestore.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val firstName = document.getString("firstName") ?: ""
+                        val lastName = document.getString("lastName") ?: ""
+                        val email = document.getString("email") ?: "user@example.com"
+                        val avatarName = document.getString("avatar") ?: "ic_profile"
+
+                        usernameText.text = "$firstName $lastName"
+                        emailText.text = email
+
+                        val resId = resources.getIdentifier(avatarName, "drawable", packageName)
+                        if (resId != 0) {
+                            profileImage.setImageResource(resId)
+                        } else {
+                            profileImage.setImageResource(R.drawable.ic_profile)
+                        }
+                    }
+                }
+                .addOnFailureListener {
+                    usernameText.text = "User"
+                    emailText.text = user.email ?: "user@example.com"
+                    profileImage.setImageResource(R.drawable.ic_profile)
+                }
+        }
     }
 
     override fun onBackPressed() {
@@ -128,7 +147,7 @@ class DashboardActivity : AppCompatActivity(),
     private fun setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             val intent = when (item.itemId) {
-                R.id.navigation_dashboard -> null // stay here
+                R.id.navigation_dashboard -> null
                 R.id.navigation_expenses -> Intent(this, ExpensesActivity::class.java)
                 R.id.navigation_income -> Intent(this, IncomeActivity::class.java)
                 R.id.navigation_milestones -> Intent(this, MilestonesActivity::class.java)
@@ -142,7 +161,6 @@ class DashboardActivity : AppCompatActivity(),
             }
             true
         }
-        // Ensure Dashboard is selected by default
         bottomNavigationView.selectedItemId = R.id.navigation_dashboard
     }
 
@@ -154,25 +172,19 @@ class DashboardActivity : AppCompatActivity(),
                 val month = (cal.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
                 val year = cal.get(Calendar.YEAR)
 
-                // incomes
                 val incomes = firestore.collection("incomes")
-                    .whereEqualTo("userId", uid)
-                    .get().await()
+                    .whereEqualTo("userId", uid).get().await()
                 val totalIncome = incomes.documents.sumOf { it.getDouble("amount") ?: 0.0 }
 
-                // expenses
                 val expensesSnap = firestore.collection("expenses")
-                    .whereEqualTo("userId", uid)
-                    .get().await()
+                    .whereEqualTo("userId", uid).get().await()
                 val totalExpenses = expensesSnap.documents.sumOf { it.getDouble("amount") ?: 0.0 }
 
-                // milestone
                 val milestoneSnap = firestore.collection("milestones")
                     .whereEqualTo("userId", uid)
                     .whereEqualTo("month", month)
                     .whereEqualTo("year", year)
-                    .limit(1)
-                    .get().await()
+                    .limit(1).get().await()
                 val milestone = milestoneSnap.documents.firstOrNull()
                 val target = milestone?.getDouble("targetAmount") ?: totalIncome
 
@@ -191,12 +203,12 @@ class DashboardActivity : AppCompatActivity(),
                     • $status
                 """.trimIndent()
 
-                // pie & bar
                 setupCategoryPieChart(
                     expensesSnap.documents
                         .groupBy { it.getString("category") ?: "Other" }
                         .map { it.key to it.value.sumOf { d -> d.getDouble("amount") ?: 0.0 } }
                 )
+
                 setupIncomeVsExpenseBarChart(totalIncome, totalExpenses)
 
             } catch (e: Exception) {
@@ -222,14 +234,16 @@ class DashboardActivity : AppCompatActivity(),
             xAxis.apply {
                 valueFormatter = IndexAxisValueFormatter(labels)
                 position = XAxis.XAxisPosition.BOTTOM
-                granularity = 1f; setDrawGridLines(false)
+                granularity = 1f
+                setDrawGridLines(false)
             }
             axisLeft.axisMinimum = 0f
             axisRight.isEnabled = false
             description.isEnabled = false
             legend.isEnabled = true
             setFitBars(true)
-            animateY(1000); invalidate()
+            animateY(1000)
+            invalidate()
         }
     }
 
@@ -243,14 +257,16 @@ class DashboardActivity : AppCompatActivity(),
         pieChart.apply {
             data = PieData(ds)
             setUsePercentValues(true)
-            setDrawHoleEnabled(true); holeRadius = 40f
+            setDrawHoleEnabled(true)
+            holeRadius = 40f
             setTransparentCircleRadius(45f)
             setEntryLabelColor(resources.getColor(android.R.color.white, null))
             setEntryLabelTextSize(12f)
             setDrawEntryLabels(true)
             description = Description().apply { text = "" }
             legend.isEnabled = true
-            animateY(1000); invalidate()
+            animateY(1000)
+            invalidate()
         }
     }
 }

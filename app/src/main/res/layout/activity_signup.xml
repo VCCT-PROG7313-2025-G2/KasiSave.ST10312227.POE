@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,7 +9,6 @@
     android:padding="24dp"
     tools:context=".MainActivity">
 
-    <!-- App Title -->
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
@@ -168,12 +168,30 @@
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <ImageView
+                android:id="@+id/avatarPreview"
+                android:layout_width="50dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:src="@drawable/ic_avatar" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/selectAvatarButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Select Avatar"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/green_primary"
+                android:textColor="@color/colorOnPrimary" />
+
             <!-- Sign Up Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/createAccountButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="24dp"
                 android:text="Create Account"
                 android:textColor="@color/colorOnPrimary"
                 android:textSize="16sp"
@@ -193,6 +211,7 @@
                 android:textStyle="bold"
                 android:clickable="true"
                 android:focusable="true" />
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

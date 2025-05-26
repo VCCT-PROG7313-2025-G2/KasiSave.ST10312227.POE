@@ -63,49 +63,32 @@ class ExpensesActivity : AppCompatActivity() {
             startActivity(Intent(this, SearchExpenseByDateActivity::class.java))
         }
 
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_categories -> {
-                    startActivity(Intent(this, CategoriesActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_income -> {
-                    startActivity(Intent(this, IncomeActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_expenses -> true
-                R.id.navigation_milestones -> {
-                    startActivity(Intent(this, MilestonesActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                else -> false
-            }
-        }
+        setupBottomNavigation()
     }
 
     override fun onResume() {
         super.onResume()
         loadExpenses()
+    }
+
+    private fun setupBottomNavigation() {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            val intent = when (item.itemId) {
+                R.id.navigation_dashboard -> Intent(this, DashboardActivity::class.java)
+                R.id.navigation_expenses -> null
+                R.id.navigation_income -> Intent(this, IncomeActivity::class.java)
+                R.id.navigation_milestones -> Intent(this, MilestonesActivity::class.java)
+                R.id.navigation_categories -> Intent(this, CategoriesActivity::class.java)
+                else -> null
+            }
+            intent?.let {
+                startActivity(it)
+                overridePendingTransition(0, 0)
+                finish()
+            }
+            true
+        }
+        bottomNavigationView.selectedItemId = R.id.navigation_expenses
     }
 
     private fun loadExpenses() {

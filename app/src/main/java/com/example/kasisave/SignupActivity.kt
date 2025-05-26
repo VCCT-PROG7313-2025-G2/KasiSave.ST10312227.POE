@@ -1,8 +1,10 @@
 package com.example.kasisave
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.kasisave.auth.AuthManager
 import com.google.firebase.firestore.FirebaseFirestore
@@ -16,8 +18,24 @@ class SignupActivity : AppCompatActivity() {
     private lateinit var passwordInput: EditText
     private lateinit var createAccountButton: Button
     private lateinit var signInText: TextView
+    private lateinit var selectAvatarButton: Button
+    private lateinit var avatarPreview: ImageView
+
+    private var selectedAvatar: String? = null
 
     private val db = FirebaseFirestore.getInstance()
+
+    private val avatarSelectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            selectedAvatar = result.data?.getStringExtra("selectedAvatar")
+            selectedAvatar?.let {
+                val resId = resources.getIdentifier(it, "drawable", packageName)
+                avatarPreview.setImageResource(resId)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +49,17 @@ class SignupActivity : AppCompatActivity() {
         passwordInput = findViewById(R.id.passwordInput)
         createAccountButton = findViewById(R.id.createAccountButton)
         signInText = findViewById(R.id.signInText)
+        selectAvatarButton = findViewById(R.id.selectAvatarButton)
+        avatarPreview = findViewById(R.id.avatarPreview)
 
         signInText.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
+        }
+
+        selectAvatarButton.setOnClickListener {
+            val intent = Intent(this, AvatarSelectionActivity::class.java)
+            intent.putExtra("isFromSignUp", true)
+            avatarSelectionLauncher.launch(intent)
         }
 
         createAccountButton.setOnClickListener {
@@ -48,22 +74,26 @@ class SignupActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            if (selectedAvatar == null) {
+                Toast.makeText(this, "Please select an avatar", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             AuthManager.signUp(email, password) { success, error ->
                 runOnUiThread {
                     if (success) {
                         val userId = AuthManager.getCurrentUserUid()
 
                         if (!userId.isNullOrBlank()) {
-                            // Save UID to shared preferences
                             val sharedPrefs = getSharedPreferences("kasisave_prefs", MODE_PRIVATE)
                             sharedPrefs.edit().putString("user_id", userId).apply()
 
-                            // Create Firestore user profile
                             val userProfile = hashMapOf(
                                 "firstName" to firstName,
                                 "lastName" to lastName,
                                 "contactNumber" to contact,
-                                "email" to email
+                                "email" to email,
+                                "avatar" to selectedAvatar
                             )
 
                             db.collection("users").document(userId)
@@ -71,7 +101,6 @@ class SignupActivity : AppCompatActivity() {
                                 .addOnSuccessListener {
                                     Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
                                     val intent = Intent(this, DashboardActivity::class.java)
-                                    intent.putExtra("userId", userId)
                                     startActivity(intent)
                                     finish()
                                 }

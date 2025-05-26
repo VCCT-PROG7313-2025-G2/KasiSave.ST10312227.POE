@@ -30,6 +30,15 @@ class ProfileActivity : AppCompatActivity() {
                         binding.firstNameInput.setText(document.getString("firstName") ?: "")
                         binding.lastNameInput.setText(document.getString("lastName") ?: "")
                         binding.contactInput.setText(document.getString("contactNumber") ?: "")
+
+                        // Load avatar image from drawable using stored avatar name
+                        val avatarName = document.getString("avatar") ?: "ic_profile"
+                        val resId = resources.getIdentifier(avatarName, "drawable", packageName)
+                        if (resId != 0) {
+                            binding.profileImageView.setImageResource(resId)
+                        } else {
+                            binding.profileImageView.setImageResource(R.drawable.ic_profile) // fallback
+                        }
                     } else {
                         Toast.makeText(this, "Profile not found.", Toast.LENGTH_SHORT).show()
                     }
@@ -51,6 +60,7 @@ class ProfileActivity : AppCompatActivity() {
                         "firstName" to firstName,
                         "lastName" to lastName,
                         "contactNumber" to contact
+                        // avatar is not updated here — assumed set during sign-up or avatar change
                     )
 
                     firestore.collection("users").document(userId)
@@ -63,6 +73,7 @@ class ProfileActivity : AppCompatActivity() {
                         }
                 }
             }
+
         } else {
             Toast.makeText(this, "User not logged in.", Toast.LENGTH_SHORT).show()
             finish()

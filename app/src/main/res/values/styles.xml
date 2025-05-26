@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<style name="AvatarStyle">
+    <item name="android:layout_width">120dp</item>
+    <item name="android:layout_height">120dp</item>
+    <item name="android:layout_marginEnd">12dp</item>
+    <item name="android:padding">6dp</item>
+    <item name="android:clickable">true</item>
+    <item name="android:focusable">true</item>
+    <item name="android:background">@drawable/avatar_background</item>
+    <item name="android:elevation">4dp</item>
+</style>
+</resources>

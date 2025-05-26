@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/light_background"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <!-- App Title -->
     <TextView
@@ -17,8 +16,7 @@
         android:text="KASI SAVE"
         android:textColor="@color/green_primary"
         android:textSize="40sp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="16dp"
         android:shadowColor="#000000"
         android:shadowDx="0"
         android:shadowDy="2"
@@ -34,7 +32,8 @@
         android:textSize="22sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:layout_marginBottom="12dp" />
+        android:layout_below="@id/textView2"
+        android:layout_marginTop="8dp" />
 
     <!-- Total Expenses -->
     <TextView
@@ -45,8 +44,9 @@
         android:textColor="@color/dark_gray"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="12dp" />
+        android:layout_below="@id/incomeTitle"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp" />
 
     <!-- No Expenses Message -->
     <TextView
@@ -58,17 +58,18 @@
         android:textColor="@android:color/darker_gray"
         android:textSize="16sp"
         android:visibility="gone"
-        android:layout_marginBottom="8dp" />
+        android:layout_below="@id/totalExpensesTextView"
+        android:layout_marginTop="8dp" />
 
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expensesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_below="@id/noExpensesTextView"
+        android:layout_above="@id/btnSearchByDate"
         android:clipToPadding="false"
-        android:paddingHorizontal="8dp"
-        android:paddingBottom="8dp" />
+        android:padding="8dp" />
 
     <!-- Search Button -->
     <com.google.android.material.button.MaterialButton
@@ -80,16 +81,18 @@
         android:textColor="@color/colorOnPrimary"
         app:cornerRadius="16dp"
         app:backgroundTint="@color/green_primary"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_alignParentBottom="true"
+        android:layout_above="@id/bottomNavigationView"
+        android:layout_marginBottom="60dp" />
 
     <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addExpenseButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
+        android:layout_alignParentEnd="true"
         android:layout_margin="16dp"
+        android:layout_above="@id/bottomNavigationView"
         android:src="@android:drawable/ic_input_add"
         android:contentDescription="Add Expense"
         app:backgroundTint="@color/green_primary"
@@ -100,8 +103,10 @@
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:background="@color/light_background"
         app:itemIconTint="@color/green_primary"
         app:itemTextColor="@color/green_primary"
         app:menu="@menu/bottom_nav_menu" />
-</LinearLayout>
+
+</RelativeLayout>
