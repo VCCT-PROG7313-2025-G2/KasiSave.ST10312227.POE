@@ -14,7 +14,7 @@ class Feature4Activity : AppCompatActivity() {
         // Set up Next button click listener
         val nextButton = findViewById<Button>(R.id.nextButton)
         nextButton.setOnClickListener {
-            val intent = Intent(this, SignupActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
 
 
