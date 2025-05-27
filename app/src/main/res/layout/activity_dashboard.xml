@@ -172,17 +172,6 @@
                         android:layout_height="300dp"
                         android:layout_marginBottom="24dp" />
 
-                    <!-- Log Out Button -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/logoutButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Log Out"
-                        android:textColor="@color/colorOnPrimary"
-                        app:backgroundTint="@color/red"
-                        android:layout_marginTop="24dp"
-                        app:cornerRadius="16dp"
-                        android:fontFamily="@font/aclonica" />
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
 
