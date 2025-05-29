@@ -7,6 +7,7 @@
     android:background="@color/light_background"
     tools:context=".MilestonesActivity">
 
+    <!-- Title -->
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
@@ -32,6 +33,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Section Title -->
     <TextView
         android:id="@+id/incomeTitle"
         android:layout_width="wrap_content"
@@ -45,12 +47,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Goal Name Input with Mic -->
     <EditText
         android:id="@+id/editTextGoalName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="48dp"
         android:layout_marginTop="24dp"
         android:hint="Goal Name"
         android:inputType="textPersonName"
@@ -62,12 +65,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ImageButton
+        android:id="@+id/micGoalName"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?android:selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:contentDescription="Mic for Goal Name"
+        app:layout_constraintTop_toTopOf="@id/editTextGoalName"
+        app:layout_constraintBottom_toBottomOf="@id/editTextGoalName"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="16dp" />
+
+    <!-- Target Amount Input with Mic -->
     <EditText
         android:id="@+id/editTextTargetAmount"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="48dp"
         android:layout_marginTop="8dp"
         android:hint="Target Amount"
         android:inputType="numberDecimal"
@@ -79,12 +95,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ImageButton
+        android:id="@+id/micTargetAmount"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?android:selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:contentDescription="Mic for Target Amount"
+        app:layout_constraintTop_toTopOf="@id/editTextTargetAmount"
+        app:layout_constraintBottom_toBottomOf="@id/editTextTargetAmount"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="16dp" />
+
+
     <EditText
         android:id="@+id/editTextDeadline"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="48dp"
         android:layout_marginTop="8dp"
         android:hint="Select Deadline"
         android:focusable="false"
@@ -98,30 +127,42 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
+    <!-- Min Spend Input with Mic -->
     <EditText
         android:id="@+id/minSpendText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="48dp"
         android:layout_marginTop="8dp"
         android:hint="Min Monthly Spend: R0.00"
         android:inputType="numberDecimal"
         android:fontFamily="@font/aclonica"
         android:textColor="@color/dark_gray"
         android:textSize="16sp"
-        android:backgroundTint="@color/green_primary"
         app:layout_constraintTop_toBottomOf="@id/editTextDeadline"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ImageButton
+        android:id="@+id/micMinSpend"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?android:selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:contentDescription="Mic for Min Spend"
+        app:layout_constraintTop_toTopOf="@id/minSpendText"
+        app:layout_constraintBottom_toBottomOf="@id/minSpendText"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="16dp" />
+
+    <!-- Max Spend Input with Mic -->
     <EditText
         android:id="@+id/maxSpendText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="48dp"
         android:layout_marginTop="8dp"
         android:hint="Max Monthly Spend: R0.00"
         android:inputType="numberDecimal"
@@ -133,6 +174,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ImageButton
+        android:id="@+id/micMaxSpend"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?android:selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:contentDescription="Mic for Max Spend"
+        app:layout_constraintTop_toTopOf="@id/maxSpendText"
+        app:layout_constraintBottom_toBottomOf="@id/maxSpendText"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="16dp" />
+
+    <!-- Add Milestone Button -->
     <Button
         android:id="@+id/buttonAddMilestone"
         android:layout_width="0dp"
@@ -148,6 +202,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/milestoneRecyclerView"
         android:layout_width="0dp"
@@ -159,6 +214,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_milestone" />
 
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="0dp"

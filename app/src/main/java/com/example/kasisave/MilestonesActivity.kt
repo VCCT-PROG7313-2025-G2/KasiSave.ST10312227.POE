@@ -1,12 +1,15 @@
 package com.example.kasisave
 
 import android.app.DatePickerDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.kasisave.data.MilestonesAdapter
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -25,7 +28,12 @@ class MilestonesActivity : AppCompatActivity() {
     private lateinit var buttonAddMilestone: Button
     private lateinit var bottomNavigationView: BottomNavigationView
 
-    private lateinit var milestoneAdapter: MilestoneAdapter
+    private lateinit var micGoalName: ImageButton
+    private lateinit var micTargetAmount: ImageButton
+    private lateinit var micMinSpend: ImageButton
+    private lateinit var micMaxSpend: ImageButton
+
+    private lateinit var milestoneAdapter: MilestonesAdapter
     private val milestoneList = mutableListOf<Milestone>()
 
     private val db = FirebaseFirestore.getInstance()
@@ -34,6 +42,13 @@ class MilestonesActivity : AppCompatActivity() {
     private var userId: String? = null
 
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+    companion object {
+        private const val SPEECH_REQUEST_CODE_GOAL_NAME = 1001
+        private const val SPEECH_REQUEST_CODE_TARGET_AMOUNT = 1002
+        private const val SPEECH_REQUEST_CODE_MIN_SPEND = 1003
+        private const val SPEECH_REQUEST_CODE_MAX_SPEND = 1004
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,11 +67,9 @@ class MilestonesActivity : AppCompatActivity() {
         setupBottomNavigation()
         loadMilestones()
 
-        // Setup date picker for deadline EditText
         editTextDeadline.setOnClickListener {
             showDatePickerDialog()
         }
-        // Optional: prevent keyboard on focus, since we want date picker
         editTextDeadline.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 showDatePickerDialog()
@@ -66,37 +79,20 @@ class MilestonesActivity : AppCompatActivity() {
         buttonAddMilestone.setOnClickListener {
             addMilestone()
         }
-    }
 
-    private fun showDatePickerDialog() {
-        // Use current date or date in editTextDeadline if set
-        val calendar = Calendar.getInstance()
-
-        // If a date is already selected, try to parse it and show that date in the picker
-        val currentDateStr = editTextDeadline.text.toString()
-        if (currentDateStr.isNotEmpty()) {
-            try {
-                val date = dateFormat.parse(currentDateStr)
-                if (date != null) {
-                    calendar.time = date
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        // Mic buttons click listeners for speech input
+        micGoalName.setOnClickListener {
+            startSpeechToText(SPEECH_REQUEST_CODE_GOAL_NAME)
         }
-
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-        val datePickerDialog = DatePickerDialog(this,
-            { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-                val selectedCalendar = Calendar.getInstance()
-                selectedCalendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
-                editTextDeadline.setText(dateFormat.format(selectedCalendar.time))
-            }, year, month, day)
-
-        datePickerDialog.show()
+        micTargetAmount.setOnClickListener {
+            startSpeechToText(SPEECH_REQUEST_CODE_TARGET_AMOUNT)
+        }
+        micMinSpend.setOnClickListener {
+            startSpeechToText(SPEECH_REQUEST_CODE_MIN_SPEND)
+        }
+        micMaxSpend.setOnClickListener {
+            startSpeechToText(SPEECH_REQUEST_CODE_MAX_SPEND)
+        }
     }
 
     private fun initViews() {
@@ -108,10 +104,15 @@ class MilestonesActivity : AppCompatActivity() {
         editTextMaxSpend = findViewById(R.id.maxSpendText)
         buttonAddMilestone = findViewById(R.id.buttonAddMilestone)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
+
+        micGoalName = findViewById(R.id.micGoalName)
+        micTargetAmount = findViewById(R.id.micTargetAmount)
+        micMinSpend = findViewById(R.id.micMinSpend)
+        micMaxSpend = findViewById(R.id.micMaxSpend)
     }
 
     private fun setupRecyclerView() {
-        milestoneAdapter = MilestoneAdapter(milestoneList)
+        milestoneAdapter = MilestonesAdapter(milestoneList)
         milestoneRecyclerView.layoutManager = LinearLayoutManager(this)
         milestoneRecyclerView.adapter = milestoneAdapter
     }
@@ -214,36 +215,67 @@ class MilestonesActivity : AppCompatActivity() {
                 else -> false
             }
         }
-
-        bottomNavigationView.selectedItemId = R.id.navigation_milestones
     }
 
-    class MilestoneAdapter(private val items: List<Milestone>) :
-        RecyclerView.Adapter<MilestonesActivity.MilestoneAdapter.MilestoneViewHolder>() {
+    private fun showDatePickerDialog() {
+        val calendar = Calendar.getInstance()
 
-        inner class MilestoneViewHolder(view: android.view.View) : RecyclerView.ViewHolder(view) {
-            val goalName: TextView = view.findViewById(R.id.textGoalName)
-            val targetAmount: TextView = view.findViewById(R.id.textTargetAmount)
-            val deadline: TextView = view.findViewById(R.id.textDeadline)
-            val minSpend: TextView = view.findViewById(R.id.minSpendText)
-            val maxSpend: TextView = view.findViewById(R.id.maxSpendText)
+        val currentDateStr = editTextDeadline.text.toString()
+        if (currentDateStr.isNotEmpty()) {
+            try {
+                val date = dateFormat.parse(currentDateStr)
+                if (date != null) {
+                    calendar.time = date
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
-        override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): MilestoneViewHolder {
-            val view = android.view.LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_milestone, parent, false)
-            return MilestoneViewHolder(view)
-        }
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-        override fun onBindViewHolder(holder: MilestoneViewHolder, position: Int) {
-            val item = items[position]
-            holder.goalName.text = item.name
-            holder.targetAmount.text = "Target: R %.2f".format(item.targetAmount)
-            holder.deadline.text = "Deadline: ${item.deadline}"
-            holder.minSpend.text = "Min Monthly Spend: R %.2f".format(item.minMonthlySpend)
-            holder.maxSpend.text = "Max Monthly Spend: R %.2f".format(item.maxMonthlySpend)
-        }
+        val datePickerDialog = DatePickerDialog(this,
+            { _, selectedYear, selectedMonth, selectedDayOfMonth ->
+                val selectedCalendar = Calendar.getInstance()
+                selectedCalendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+                editTextDeadline.setText(dateFormat.format(selectedCalendar.time))
+            }, year, month, day)
 
-        override fun getItemCount(): Int = items.size
+        datePickerDialog.show()
+    }
+
+    private fun startSpeechToText(requestCode: Int) {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now")
+        }
+        try {
+            startActivityForResult(intent, requestCode)
+        } catch (a: ActivityNotFoundException) {
+            Toast.makeText(this, "Speech recognition is not supported on your device", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == RESULT_OK && data != null) {
+            val result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!result.isNullOrEmpty()) {
+                val spokenText = result[0]
+                when (requestCode) {
+                    SPEECH_REQUEST_CODE_GOAL_NAME -> editTextGoalName.setText(spokenText)
+                    SPEECH_REQUEST_CODE_TARGET_AMOUNT -> editTextTargetAmount.setText(spokenText)
+                    SPEECH_REQUEST_CODE_MIN_SPEND -> editTextMinSpend.setText(spokenText)
+                    SPEECH_REQUEST_CODE_MAX_SPEND -> editTextMaxSpend.setText(spokenText)
+                }
+            }
+        }
     }
 }

@@ -25,7 +25,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 
-    <!-- Spacer -->
     <View
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -61,22 +60,41 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/incomeTitle" />
 
-    <EditText
-        android:id="@+id/amountEditText"
+    <!-- Amount Input with Mic -->
+    <LinearLayout
+        android:id="@+id/amountInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
-        android:hint="Income Amount"
-        android:inputType="numberDecimal"
-        android:fontFamily="@font/aclonica"
-        android:textColor="@color/dark_gray"
-        android:textSize="16sp"
-        android:backgroundTint="@color/green_primary"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/totalIncomeTextView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/totalIncomeTextView" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <EditText
+            android:id="@+id/amountEditText"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:hint="Income Amount"
+            android:inputType="numberDecimal"
+            android:fontFamily="@font/aclonica"
+            android:textColor="@color/dark_gray"
+            android:textSize="16sp"
+            android:backgroundTint="@color/green_primary" />
+
+        <ImageButton
+            android:id="@+id/micButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Voice Input"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:tint="@color/green_primary"
+            android:padding="8dp" />
+    </LinearLayout>
 
     <Spinner
         android:id="@+id/categorySpinner"
@@ -88,7 +106,7 @@
         android:fontFamily="@font/aclonica"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/amountEditText" />
+        app:layout_constraintTop_toBottomOf="@id/amountInputLayout" />
 
     <CheckBox
         android:id="@+id/recurringCheckBox"
@@ -128,7 +146,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/dateButton" />
 
-    <!-- Lottie Animation -->
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/incomeAnimationView"
         android:layout_width="200dp"
