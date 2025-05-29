@@ -49,6 +49,8 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation ("com.google.firebase:firebase-auth-ktx:22.1.1")
 
+    implementation ("com.google.mlkit:text-recognition:16.0.0")
+
 
     implementation ("com.google.firebase:firebase-storage:20.3.0")
     implementation ("com.google.firebase:firebase-storage-ktx:20.3.0")
