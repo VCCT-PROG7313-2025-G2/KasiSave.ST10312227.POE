@@ -4,7 +4,8 @@
 
     <!-- Camera permission -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- WRITE_EXTERNAL_STORAGE permission can be removed if not saving to shared external storage -->
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <uses-feature android:name="android.hardware.camera" android:required="true" />
 

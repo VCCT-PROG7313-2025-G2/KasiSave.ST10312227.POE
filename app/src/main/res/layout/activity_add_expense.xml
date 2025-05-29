@@ -1,85 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/light_background"
     android:padding="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
+        <!-- Date -->
         <EditText
             android:id="@+id/dateEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
-            android:focusable="false"
             android:hint="Date (YYYY-MM-DD)"
+            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
             android:inputType="none"
+            android:focusable="false"
             android:padding="12dp"
             android:backgroundTint="@color/green_primary"
             android:textColor="@color/dark_gray"
             android:textColorHint="@color/light_gray" />
 
+        <!-- Start Time -->
         <EditText
             android:id="@+id/startTimeEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableEnd="@android:drawable/ic_menu_recent_history"
-            android:focusable="false"
             android:hint="Start Time (HH:mm)"
+            android:drawableEnd="@android:drawable/ic_menu_recent_history"
             android:inputType="none"
+            android:focusable="false"
             android:padding="12dp"
             android:backgroundTint="@color/green_primary"
             android:textColor="@color/dark_gray"
             android:textColorHint="@color/light_gray" />
 
+        <!-- End Time -->
         <EditText
             android:id="@+id/endTimeEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableEnd="@android:drawable/ic_menu_recent_history"
-            android:focusable="false"
             android:hint="End Time (HH:mm)"
+            android:drawableEnd="@android:drawable/ic_menu_recent_history"
             android:inputType="none"
+            android:focusable="false"
             android:padding="12dp"
             android:backgroundTint="@color/green_primary"
             android:textColor="@color/dark_gray"
             android:textColorHint="@color/light_gray" />
 
-        <EditText
-            android:id="@+id/descriptionEditText"
+        <!-- Description + Mic -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Description"
-            android:inputType="text"
-            android:padding="12dp"
-            android:backgroundTint="@color/green_primary"
-            android:textColor="@color/dark_gray"
-            android:textColorHint="@color/light_gray" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
 
-        <EditText
-            android:id="@+id/amountEditText"
+            <EditText
+                android:id="@+id/descriptionEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Description"
+                android:inputType="text"
+                android:padding="12dp"
+                android:backgroundTint="@color/green_primary"
+                android:textColor="@color/dark_gray"
+                android:textColorHint="@color/light_gray" />
+
+            <ImageButton
+                android:id="@+id/btnMicDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_btn_speak_now"
+                android:contentDescription="Voice input for description"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Amount + Mic -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Amount"
-            android:inputType="numberDecimal"
-            android:padding="12dp"
-            android:backgroundTint="@color/green_primary"
-            android:textColor="@color/dark_gray"
-            android:textColorHint="@color/light_gray" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
 
+            <EditText
+                android:id="@+id/amountEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Amount"
+                android:inputType="numberDecimal"
+                android:padding="12dp"
+                android:backgroundTint="@color/green_primary"
+                android:textColor="@color/dark_gray"
+                android:textColorHint="@color/light_gray" />
+
+            <ImageButton
+                android:id="@+id/btnMicAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_btn_speak_now"
+                android:contentDescription="Voice input for amount"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Category -->
         <Spinner
             android:id="@+id/categorySpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"
-            android:backgroundTint="@color/light_gray" />
+            android:backgroundTint="@color/light_gray"
+            android:layout_marginTop="8dp" />
 
+        <!-- Attach Photo -->
         <Button
             android:id="@+id/attachPhotoButton"
             android:layout_width="wrap_content"
@@ -89,23 +133,27 @@
             android:backgroundTint="@color/green_primary"
             android:textColor="@android:color/white" />
 
+        <!-- Photo Preview -->
         <ImageView
             android:id="@+id/expenseImageView"
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_marginTop="12dp"
             android:background="@color/light_gray"
-            android:contentDescription="Attached Expense Image"
             android:scaleType="centerCrop"
+            android:contentDescription="Attached Expense Image"
             android:visibility="visible" />
 
+        <!-- Recurring Expense -->
         <CheckBox
             android:id="@+id/recurringCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="Recurring Expense?"
             android:textColor="@color/dark_gray" />
 
+        <!-- Lottie Animation -->
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/expenseAnimationView"
             android:layout_width="200dp"
@@ -116,14 +164,14 @@
             app:lottie_autoPlay="false"
             app:lottie_loop="false" />
 
-
+        <!-- Save Button -->
         <Button
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:backgroundTint="@color/green_primary"
             android:text="Save Expense"
+            android:backgroundTint="@color/green_primary"
             android:textColor="@android:color/white" />
     </LinearLayout>
 </ScrollView>

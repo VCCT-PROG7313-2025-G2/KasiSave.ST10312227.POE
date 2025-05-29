@@ -3,10 +3,12 @@ package com.example.kasisave.activities
 import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.View
 import android.widget.*
@@ -33,16 +35,21 @@ class AddExpenseActivity : AppCompatActivity() {
     private lateinit var descriptionEditText: EditText
     private lateinit var amountEditText: EditText
     private lateinit var categorySpinner: Spinner
+    private lateinit var recurringCheckBox: CheckBox
     private lateinit var attachPhotoButton: Button
     private lateinit var saveButton: Button
     private lateinit var expenseImageView: ImageView
-    private lateinit var recurringCheckBox: CheckBox
+    private lateinit var voiceInputDescriptionButton: ImageButton
+    private lateinit var voiceInputAmountButton: ImageButton
     private lateinit var expenseAnimationView: LottieAnimationView
 
     private var photoUri: Uri? = null
     private var photoFile: File? = null
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 1001
+    private val AUDIO_PERMISSION_REQUEST_CODE = 1002
+    private val SPEECH_DESCRIPTION_REQUEST_CODE = 2000
+    private val SPEECH_AMOUNT_REQUEST_CODE = 2001
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -68,10 +75,12 @@ class AddExpenseActivity : AppCompatActivity() {
         descriptionEditText = findViewById(R.id.descriptionEditText)
         amountEditText = findViewById(R.id.amountEditText)
         categorySpinner = findViewById(R.id.categorySpinner)
+        recurringCheckBox = findViewById(R.id.recurringCheckBox)
         attachPhotoButton = findViewById(R.id.attachPhotoButton)
         saveButton = findViewById(R.id.saveButton)
         expenseImageView = findViewById(R.id.expenseImageView)
-        recurringCheckBox = findViewById(R.id.recurringCheckBox)
+        voiceInputDescriptionButton = findViewById(R.id.btnMicDescription)
+        voiceInputAmountButton = findViewById(R.id.btnMicAmount)
         expenseAnimationView = findViewById(R.id.expenseAnimationView)
 
         setupDatePicker()
@@ -80,6 +89,14 @@ class AddExpenseActivity : AppCompatActivity() {
 
         attachPhotoButton.setOnClickListener { checkCameraPermissionAndLaunch() }
         saveButton.setOnClickListener { saveExpense() }
+
+        voiceInputDescriptionButton.setOnClickListener {
+            checkAudioPermissionAndStartVoiceInput(SPEECH_DESCRIPTION_REQUEST_CODE)
+        }
+
+        voiceInputAmountButton.setOnClickListener {
+            checkAudioPermissionAndStartVoiceInput(SPEECH_AMOUNT_REQUEST_CODE)
+        }
     }
 
     private fun setupDatePicker() {
@@ -104,7 +121,7 @@ class AddExpenseActivity : AppCompatActivity() {
         val calendar = Calendar.getInstance()
         TimePickerDialog(
             this,
-            { _, hour, minute -> target.setText("%02d:%02d".format(hour, minute)) },
+            { _, hour, minute -> target.setText(String.format("%02d:%02d", hour, minute)) },
             calendar.get(Calendar.HOUR_OF_DAY),
             calendar.get(Calendar.MINUTE),
             true
@@ -148,6 +165,65 @@ class AddExpenseActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkAudioPermissionAndStartVoiceInput(requestCode: Int) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), AUDIO_PERMISSION_REQUEST_CODE)
+        } else {
+            startVoiceInput(requestCode)
+        }
+    }
+
+    private fun startVoiceInput(requestCode: Int) {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, if (requestCode == SPEECH_AMOUNT_REQUEST_CODE) "Speak the amount" else "Speak the description")
+        }
+
+        try {
+            startActivityForResult(intent, requestCode)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Voice input failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK && data != null) {
+            val result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!result.isNullOrEmpty()) {
+                when (requestCode) {
+                    SPEECH_DESCRIPTION_REQUEST_CODE -> descriptionEditText.setText(result[0])
+                    SPEECH_AMOUNT_REQUEST_CODE -> {
+                        val spokenText = result[0]
+                        val amount = spokenText.replace("[^0-9.]".toRegex(), "").toDoubleOrNull()
+                        if (amount != null) {
+                            amountEditText.setText(String.format("%.2f", amount))
+                        } else {
+                            Toast.makeText(this, "Could not recognize amount", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            CAMERA_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    launchCamera()
+                } else {
+                    Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
+                }
+            }
+            AUDIO_PERMISSION_REQUEST_CODE -> {
+                Toast.makeText(this, "Audio permission granted", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun launchCamera() {
         try {
             val photoDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
@@ -157,15 +233,6 @@ class AddExpenseActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "Error launching camera: ${e.message}", Toast.LENGTH_LONG).show()
             Log.e("AddExpense", "launchCamera error: ", e)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            launchCamera()
-        } else {
-            Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -192,7 +259,6 @@ class AddExpenseActivity : AppCompatActivity() {
             return
         }
 
-        expenseAnimationView.speed = 1.0f
         expenseAnimationView.visibility = View.VISIBLE
         expenseAnimationView.playAnimation()
         saveButton.isEnabled = false
@@ -212,14 +278,10 @@ class AddExpenseActivity : AppCompatActivity() {
             .addOnSuccessListener {
                 storageRef.downloadUrl.addOnSuccessListener { uri ->
                     saveExpenseToFirestore(userId, dateMillis, amount, category, uri.toString())
-                }.addOnFailureListener {
-                    Toast.makeText(this, "Failed to get image URL", Toast.LENGTH_SHORT).show()
-                    expenseAnimationView.visibility = View.GONE
-                    saveButton.isEnabled = true
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Image upload failed: ${it.message}", Toast.LENGTH_SHORT).show()
                 expenseAnimationView.visibility = View.GONE
                 saveButton.isEnabled = true
             }
@@ -235,9 +297,9 @@ class AddExpenseActivity : AppCompatActivity() {
         val expense = Expense(
             userId = userId,
             dateMillis = dateMillis,
-            startTime = startTimeEditText.text.toString().takeIf { it.isNotBlank() },
-            endTime = endTimeEditText.text.toString().takeIf { it.isNotBlank() },
-            description = descriptionEditText.text.toString().takeIf { it.isNotBlank() },
+            startTime = startTimeEditText.text.toString(),
+            endTime = endTimeEditText.text.toString(),
+            description = descriptionEditText.text.toString(),
             amount = amount,
             category = category,
             photoUri = downloadUrl,

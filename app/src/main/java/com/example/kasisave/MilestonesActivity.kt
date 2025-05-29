@@ -1,5 +1,6 @@
 package com.example.kasisave
 
+import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
@@ -10,6 +11,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MilestonesActivity : AppCompatActivity() {
 
@@ -28,13 +31,14 @@ class MilestonesActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private var milestonesListener: ListenerRegistration? = null
-    private var userId: String? = null  // Firebase user ID is String
+    private var userId: String? = null
+
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_milestones)
 
-        // Get logged-in Firebase user ID
         userId = auth.currentUser?.uid
         if (userId == null) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
@@ -43,7 +47,59 @@ class MilestonesActivity : AppCompatActivity() {
             return
         }
 
-        // Initialize views
+        initViews()
+        setupRecyclerView()
+        setupBottomNavigation()
+        loadMilestones()
+
+        // Setup date picker for deadline EditText
+        editTextDeadline.setOnClickListener {
+            showDatePickerDialog()
+        }
+        // Optional: prevent keyboard on focus, since we want date picker
+        editTextDeadline.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                showDatePickerDialog()
+            }
+        }
+
+        buttonAddMilestone.setOnClickListener {
+            addMilestone()
+        }
+    }
+
+    private fun showDatePickerDialog() {
+        // Use current date or date in editTextDeadline if set
+        val calendar = Calendar.getInstance()
+
+        // If a date is already selected, try to parse it and show that date in the picker
+        val currentDateStr = editTextDeadline.text.toString()
+        if (currentDateStr.isNotEmpty()) {
+            try {
+                val date = dateFormat.parse(currentDateStr)
+                if (date != null) {
+                    calendar.time = date
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        val datePickerDialog = DatePickerDialog(this,
+            { _, selectedYear, selectedMonth, selectedDayOfMonth ->
+                val selectedCalendar = Calendar.getInstance()
+                selectedCalendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+                editTextDeadline.setText(dateFormat.format(selectedCalendar.time))
+            }, year, month, day)
+
+        datePickerDialog.show()
+    }
+
+    private fun initViews() {
         milestoneRecyclerView = findViewById(R.id.milestoneRecyclerView)
         editTextGoalName = findViewById(R.id.editTextGoalName)
         editTextTargetAmount = findViewById(R.id.editTextTargetAmount)
@@ -52,25 +108,16 @@ class MilestonesActivity : AppCompatActivity() {
         editTextMaxSpend = findViewById(R.id.maxSpendText)
         buttonAddMilestone = findViewById(R.id.buttonAddMilestone)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
+    }
 
+    private fun setupRecyclerView() {
         milestoneAdapter = MilestoneAdapter(milestoneList)
         milestoneRecyclerView.layoutManager = LinearLayoutManager(this)
         milestoneRecyclerView.adapter = milestoneAdapter
-
-        loadMilestones()
-
-        buttonAddMilestone.setOnClickListener {
-            addMilestone()
-        }
-
-        setupBottomNavigation()
     }
 
     private fun loadMilestones() {
-        // Remove previous listener if any
         milestonesListener?.remove()
-
-        // Listen for real-time updates from Firestore
         milestonesListener = db.collection("milestones")
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
@@ -79,16 +126,14 @@ class MilestonesActivity : AppCompatActivity() {
                     return@addSnapshotListener
                 }
 
-                if (snapshot != null) {
-                    milestoneList.clear()
-                    for (doc in snapshot.documents) {
-                        val milestone = doc.toObject(Milestone::class.java)
-                        if (milestone != null) {
-                            milestoneList.add(milestone.copy(id = doc.id))
-                        }
+                milestoneList.clear()
+                snapshot?.documents?.forEach { doc ->
+                    val milestone = doc.toObject(Milestone::class.java)
+                    if (milestone != null) {
+                        milestoneList.add(milestone.copy(id = doc.id))
                     }
-                    milestoneAdapter.notifyDataSetChanged()
                 }
+                milestoneAdapter.notifyDataSetChanged()
             }
     }
 
@@ -100,12 +145,12 @@ class MilestonesActivity : AppCompatActivity() {
         val maxSpend = editTextMaxSpend.text.toString().toDoubleOrNull()
 
         if (goalName.isEmpty() || targetAmount == null || deadline.isEmpty() || minSpend == null || maxSpend == null) {
-            Toast.makeText(this, "Fill in all fields correctly", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please fill in all fields correctly", Toast.LENGTH_SHORT).show()
             return
         }
 
         val milestone = Milestone(
-            id = null,  // will be set by Firestore
+            id = null,
             userId = userId!!,
             name = goalName,
             targetAmount = targetAmount,
@@ -135,8 +180,42 @@ class MilestonesActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Remove Firestore listener when activity is destroyed
         milestonesListener?.remove()
+    }
+
+    private fun setupBottomNavigation() {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_dashboard -> {
+                    startActivity(Intent(this, DashboardActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_categories -> {
+                    startActivity(Intent(this, CategoriesActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_expenses -> {
+                    startActivity(Intent(this, ExpensesActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_income -> {
+                    startActivity(Intent(this, IncomeActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    finish()
+                    true
+                }
+                R.id.navigation_milestones -> true
+                else -> false
+            }
+        }
+
+        bottomNavigationView.selectedItemId = R.id.navigation_milestones
     }
 
     class MilestoneAdapter(private val items: List<Milestone>) :
@@ -165,47 +244,6 @@ class MilestonesActivity : AppCompatActivity() {
             holder.maxSpend.text = "Max Monthly Spend: R %.2f".format(item.maxMonthlySpend)
         }
 
-        override fun getItemCount() = items.size
-    }
-
-    private fun setupBottomNavigation() {
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_categories -> {
-                    startActivity(Intent(this, CategoriesActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_expenses -> {
-                    startActivity(Intent(this, ExpensesActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_income -> {
-                    startActivity(Intent(this, IncomeActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_milestones -> true
-                else -> false
-            }
-        }
+        override fun getItemCount(): Int = items.size
     }
 }

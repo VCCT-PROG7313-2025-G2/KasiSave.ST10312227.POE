@@ -165,12 +165,58 @@
                         android:layout_height="300dp"
                         android:layout_marginBottom="24dp" />
 
+                    <!-- Period Selector above Bar Chart -->
+                    <LinearLayout
+                        android:id="@+id/periodSelectorLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select period:"
+                            android:textSize="16sp"
+                            android:textColor="@color/black"
+                            android:layout_marginEnd="8dp"
+                            android:fontFamily="@font/aclonica" />
+
+                        <Spinner
+                            android:id="@+id/spinnerPeriod"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:entries="@array/period_options"
+                            android:spinnerMode="dropdown" />
+                    </LinearLayout>
+
                     <!-- Bar Chart -->
                     <com.github.mikephil.charting.charts.BarChart
                         android:id="@+id/barChart"
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
                         android:layout_marginBottom="24dp" />
+
+                    <!-- Spending goal status -->
+                    <TextView
+                        android:id="@+id/spendingGoalStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Goal status will appear here"
+                        android:textSize="18sp"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_marginBottom="24dp"
+                        android:fontFamily="@font/aclonica" />
+
+                    <!-- Line Chart -->
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/lineChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp"
+                        android:layout_marginTop="24dp"
+                        android:background="@color/white" />
 
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
