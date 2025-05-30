@@ -361,10 +361,12 @@ class AddExpenseActivity : AppCompatActivity() {
                         }
                     }
 
+
                     // Date detection
                     val dateRegexes = listOf(
                         Regex("""\b\d{4}[-/]\d{2}[-/]\d{2}\b"""), // yyyy-MM-dd or yyyy/MM/dd
                         Regex("""\b\d{2}[-/]\d{2}[-/]\d{4}\b"""), // dd-MM-yyyy or dd/MM/yyyy
+                        Regex("""\b\d{2}[.]\d{2}[.]\d{2,4}\b"""), // dd.MM.yy or dd.MM.yyyy
                         Regex("""\b\d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{4}\b""", RegexOption.IGNORE_CASE),
                         Regex("""\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b""", RegexOption.IGNORE_CASE)
                     )
@@ -394,26 +396,40 @@ class AddExpenseActivity : AppCompatActivity() {
             Toast.makeText(this, "Error loading image: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
     private fun normalizeDate(input: String): String? {
         val formats = listOf(
             "yyyy-MM-dd", "yyyy/MM/dd",
             "dd-MM-yyyy", "dd/MM/yyyy",
-            "dd MMM yyyy", "dd MMMM yyyy"
+            "dd.MM.yyyy", "dd.MM.yy",
+            "d MMM yyyy", "d MMMM yyyy"
         )
 
         for (format in formats) {
             try {
                 val parser = SimpleDateFormat(format, Locale.ENGLISH)
-                val parsedDate = parser.parse(input)
+                parser.isLenient = false
+                val parsedDate = parser.parse(input) ?: continue
+
+                // If the year is 2 digits, fix it manually
+                val calendar = Calendar.getInstance()
+                calendar.time = parsedDate
+                val year = calendar.get(Calendar.YEAR)
+
+                if (year < 100) {
+                    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+                    val century = currentYear / 100
+                    val adjustedYear = if (year < 50) century * 100 + year else (century - 1) * 100 + year
+                    calendar.set(Calendar.YEAR, adjustedYear)
+                }
+
                 val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
-                return formatter.format(parsedDate!!)
+                return formatter.format(calendar.time)
             } catch (e: Exception) {
-                continue
+                // Try next format
             }
         }
         return null
     }
-
-
 
 }
