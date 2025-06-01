@@ -136,18 +136,4 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Optional Animation (hidden by default) -->
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lightningAnimation"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        android:clickable="false"
-        android:focusable="false"
-        app:lottie_rawRes="@raw/lightning"
-        app:lottie_autoPlay="false"
-        app:lottie_loop="false"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,6 +7,7 @@ import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.kasisave.auth.AuthManager
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 
 class SignupActivity : AppCompatActivity() {
@@ -96,18 +97,30 @@ class SignupActivity : AppCompatActivity() {
                                 "avatar" to selectedAvatar
                             )
 
+                            // Save user profile
                             db.collection("users").document(userId)
                                 .set(userProfile)
                                 .addOnSuccessListener {
-                                    Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                                    val intent = Intent(this, DashboardActivity::class.java)
-                                    startActivity(intent)
-                                    finish()
+                                    // Initialize rewards document with 50 coins
+                                    val rewardsData = hashMapOf(
+                                        "coins" to 50,
+                                        "lastUpdated" to Timestamp.now()
+                                    )
+                                    db.collection("rewards").document(userId)
+                                        .set(rewardsData)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(this, "Account and rewards created successfully!", Toast.LENGTH_SHORT).show()
+                                            val intent = Intent(this, RewardsSignupActivity::class.java)
+                                            startActivity(intent)
+                                            finish()
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Toast.makeText(this, "Failed to initialize rewards: ${e.message}", Toast.LENGTH_LONG).show()
+                                        }
                                 }
                                 .addOnFailureListener { e ->
                                     Toast.makeText(this, "Failed to save user data: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
-
                         } else {
                             Toast.makeText(this, "Failed to retrieve user ID", Toast.LENGTH_LONG).show()
                         }

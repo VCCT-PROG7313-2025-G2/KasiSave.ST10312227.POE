@@ -43,6 +43,7 @@
         <activity android:name=".SearchExpenseByDateActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
+        <activity android:name=".RewardsSignupActivity" android:exported="false" />
         <activity android:name=".CategoriesActivity" android:exported="false" />
 
         <meta-data

@@ -51,6 +51,8 @@ dependencies {
 
     implementation ("com.google.mlkit:text-recognition:16.0.0")
 
+    implementation ("nl.dionsegijn:konfetti-xml:2.0.2")
+    implementation ("nl.dionsegijn:konfetti-core:2.0.2")
 
     implementation ("com.google.firebase:firebase-storage:20.3.0")
     implementation ("com.google.firebase:firebase-storage-ktx:20.3.0")
@@ -68,6 +70,7 @@ dependencies {
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.androidx.ui.graphics.android)
     annotationProcessor("com.github.bumptech.glide:compiler:4.13.0")
     kapt ("com.github.bumptech.glide:compiler:4.16.0")
 
