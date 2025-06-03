@@ -39,11 +39,12 @@
         <activity android:name=".IncomeActivity" android:exported="false" />
         <activity android:name=".MilestonesActivity" android:exported="false" />
         <activity android:name=".DashboardActivity" android:exported="false" />
-        <activity android:name=".activities.AddExpenseActivity" android:exported="false" />
+        <activity android:name=".AddExpenseActivity" android:exported="false" />
         <activity android:name=".SearchExpenseByDateActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".RewardsSignupActivity" android:exported="false" />
+        <activity android:name=".RewardsExpensesActivity" android:exported="false" />
         <activity android:name=".CategoriesActivity" android:exported="false" />
 
         <meta-data

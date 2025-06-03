@@ -1,4 +1,4 @@
-package com.example.kasisave.activities
+package com.example.kasisave
 
 import android.Manifest
 import android.app.DatePickerDialog
@@ -99,9 +99,8 @@ class AddExpenseActivity : AppCompatActivity() {
         attachPhotoButton.setOnClickListener { checkCameraPermissionAndLaunch() }
         saveButton.setOnClickListener { saveExpense() }
         recognizeTextButton.setOnClickListener {
-            photoUri?.let { uri ->
-                recognizeTextFromPhoto(uri)
-            } ?: Toast.makeText(this, "No image to analyze", Toast.LENGTH_SHORT).show()
+            photoUri?.let { uri -> recognizeTextFromPhoto(uri) }
+                ?: Toast.makeText(this, "No image to analyze", Toast.LENGTH_SHORT).show()
         }
         voiceInputDescriptionButton.setOnClickListener {
             checkAudioPermissionAndStartVoiceInput(SPEECH_DESCRIPTION_REQUEST_CODE)
@@ -302,13 +301,7 @@ class AddExpenseActivity : AppCompatActivity() {
             }
     }
 
-    private fun saveExpenseToFirestore(
-        userId: String,
-        dateMillis: Long,
-        amount: Double,
-        category: String,
-        downloadUrl: String?
-    ) {
+    private fun saveExpenseToFirestore(userId: String, dateMillis: Long, amount: Double, category: String, downloadUrl: String?) {
         val expense = Expense(
             userId = userId,
             dateMillis = dateMillis,
@@ -326,6 +319,9 @@ class AddExpenseActivity : AppCompatActivity() {
             .addOnSuccessListener {
                 Toast.makeText(this, "Expense saved", Toast.LENGTH_SHORT).show()
                 expenseAnimationView.visibility = View.GONE
+                val intent = Intent(this, RewardsExpensesActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
                 finish()
             }
             .addOnFailureListener {
@@ -336,100 +332,30 @@ class AddExpenseActivity : AppCompatActivity() {
     }
 
     private fun recognizeTextFromPhoto(imageUri: Uri) {
-        val image: InputImage
-        try {
-            image = InputImage.fromFilePath(this, imageUri)
-            val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        val image = InputImage.fromFilePath(this, imageUri)
+        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
-            recognizer.process(image)
-                .addOnSuccessListener { visionText ->
-                    val detectedText = visionText.text
-
-                    // Description (use first non-empty line)
-                    val lines = detectedText.lines().filter { it.isNotBlank() }
-                    if (lines.isNotEmpty()) {
-                        descriptionEditText.setText(lines[0])
-                    }
-
-                    // Amount detection (decimal pattern)
-                    val amountRegex = Regex("""\b\d+\.\d{2}\b""")
-                    val amountMatch = amountRegex.findAll(detectedText).toList()
-                    if (amountMatch.isNotEmpty()) {
-                        val highestAmount = amountMatch.map { it.value.toDouble() }.maxOrNull()
-                        highestAmount?.let {
-                            amountEditText.setText(String.format("%.2f", it))
-                        }
-                    }
-
-
-                    // Date detection
-                    val dateRegexes = listOf(
-                        Regex("""\b\d{4}[-/]\d{2}[-/]\d{2}\b"""), // yyyy-MM-dd or yyyy/MM/dd
-                        Regex("""\b\d{2}[-/]\d{2}[-/]\d{4}\b"""), // dd-MM-yyyy or dd/MM/yyyy
-                        Regex("""\b\d{2}[.]\d{2}[.]\d{2,4}\b"""), // dd.MM.yy or dd.MM.yyyy
-                        Regex("""\b\d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{4}\b""", RegexOption.IGNORE_CASE),
-                        Regex("""\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b""", RegexOption.IGNORE_CASE)
-                    )
-
-                    var detectedDate: String? = null
-                    for (regex in dateRegexes) {
-                        val match = regex.find(detectedText)
-                        if (match != null) {
-                            detectedDate = match.value
-                            break
-                        }
-                    }
-
-                    if (detectedDate != null) {
-                        val normalized = normalizeDate(detectedDate)
-                        if (normalized != null) {
-                            dateEditText.setText(normalized)
-                        }
-                    }
-
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Failed to recognize text: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this, "Error loading image: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun normalizeDate(input: String): String? {
-        val formats = listOf(
-            "yyyy-MM-dd", "yyyy/MM/dd",
-            "dd-MM-yyyy", "dd/MM/yyyy",
-            "dd.MM.yyyy", "dd.MM.yy",
-            "d MMM yyyy", "d MMMM yyyy"
-        )
-
-        for (format in formats) {
-            try {
-                val parser = SimpleDateFormat(format, Locale.ENGLISH)
-                parser.isLenient = false
-                val parsedDate = parser.parse(input) ?: continue
-
-                // If the year is 2 digits, fix it manually
-                val calendar = Calendar.getInstance()
-                calendar.time = parsedDate
-                val year = calendar.get(Calendar.YEAR)
-
-                if (year < 100) {
-                    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-                    val century = currentYear / 100
-                    val adjustedYear = if (year < 50) century * 100 + year else (century - 1) * 100 + year
-                    calendar.set(Calendar.YEAR, adjustedYear)
+        recognizer.process(image)
+            .addOnSuccessListener { visionText ->
+                val text = visionText.text
+                val lines = text.lines().filter { it.isNotBlank() }
+                if (lines.isNotEmpty()) {
+                    descriptionEditText.setText(lines[0])
                 }
 
-                val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
-                return formatter.format(calendar.time)
-            } catch (e: Exception) {
-                // Try next format
+                val amountRegex = Regex("""\b\d+\.\d{2}\b""")
+                val matches = amountRegex.findAll(text).map { it.value.toDouble() }.toList()
+                if (matches.isNotEmpty()) {
+                    val likelyAmount = matches.maxOrNull()
+                    if (likelyAmount != null) {
+                        amountEditText.setText(String.format("%.2f", likelyAmount))
+                    }
+                } else {
+                    Toast.makeText(this, "No amount detected", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
-        return null
+            .addOnFailureListener {
+                Toast.makeText(this, "Text recognition failed: ${it.message}", Toast.LENGTH_LONG).show()
+            }
     }
-
 }
