@@ -3,6 +3,7 @@ package com.example.kasisave
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -28,6 +29,7 @@ class RewardsExpensesActivity : AppCompatActivity() {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,14 +66,15 @@ class RewardsExpensesActivity : AppCompatActivity() {
         rewardsRef.update("coins", FieldValue.increment(25))
             .addOnSuccessListener {
                 Log.d("RewardsExpensesActivity", "Successfully incremented rewards by 25 points")
+                playRewardSound()
             }
             .addOnFailureListener { e ->
                 if (e.message?.contains("NOT_FOUND") == true || e.message?.contains("No document") == true) {
-                    // Document doesn't exist; create it with initial 25 coins
                     val newReward = hashMapOf("coins" to 25)
                     rewardsRef.set(newReward)
                         .addOnSuccessListener {
                             Log.d("RewardsExpensesActivity", "Rewards document created with 25 points")
+                            playRewardSound()
                         }
                         .addOnFailureListener { err ->
                             Log.e("RewardsExpensesActivity", "Failed to create rewards document: ${err.message}")
@@ -80,6 +83,11 @@ class RewardsExpensesActivity : AppCompatActivity() {
                     Log.e("RewardsExpensesActivity", "Failed to update rewards: ${e.message}")
                 }
             }
+    }
+
+    private fun playRewardSound() {
+        mediaPlayer = MediaPlayer.create(this, R.raw.rewards_sound)
+        mediaPlayer?.start()
     }
 
     private fun showCongratsAndKonfetti() {
@@ -101,5 +109,11 @@ class RewardsExpensesActivity : AppCompatActivity() {
         )
 
         konfettiView.start(party)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }

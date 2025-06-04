@@ -46,6 +46,7 @@
         <activity android:name=".RewardsSignupActivity" android:exported="false" />
         <activity android:name=".RewardsExpensesActivity" android:exported="false" />
         <activity android:name=".CategoriesActivity" android:exported="false" />
+        <activity android:name=".RewardsActivity" android:exported="false" />
 
         <meta-data
             android:name="preloaded_fonts"

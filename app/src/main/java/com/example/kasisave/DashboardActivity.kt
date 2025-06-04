@@ -133,6 +133,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         when (item.itemId) {
             R.id.nav_profile -> startActivity(Intent(this, ProfileActivity::class.java))
             R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
+            R.id.nav_rewards -> startActivity(Intent(this, RewardsActivity::class.java))
             R.id.nav_logout -> {
                 auth.signOut()
                 startActivity(Intent(this, LoginActivity::class.java))

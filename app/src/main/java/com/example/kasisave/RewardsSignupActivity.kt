@@ -3,6 +3,7 @@ package com.example.kasisave
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -21,6 +22,7 @@ class RewardsSignupActivity : AppCompatActivity() {
     private lateinit var konfettiView: KonfettiView
     private lateinit var tvCongrats: TextView
     private lateinit var btnBackToDashboard: MaterialButton
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +38,7 @@ class RewardsSignupActivity : AppCompatActivity() {
         rewardAnimation.addAnimatorListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator) {
                 startConfetti()
+                playRewardSound()
             }
 
             override fun onAnimationEnd(animation: Animator) {
@@ -66,5 +69,16 @@ class RewardsSignupActivity : AppCompatActivity() {
             timeToLive = 3000L
         )
         konfettiView.start(party)
+    }
+
+    private fun playRewardSound() {
+        mediaPlayer = MediaPlayer.create(this, R.raw.rewards_sound)
+        mediaPlayer?.start()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }
