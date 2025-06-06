@@ -187,6 +187,8 @@ class MilestonesActivity : AppCompatActivity() {
             .addOnSuccessListener {
                 Toast.makeText(this, "Milestone added", Toast.LENGTH_SHORT).show()
                 resetFields()
+                val intent = Intent(this, RewardsMilestonesActivity::class.java)
+                startActivity(intent)
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Failed to add milestone: ${e.message}", Toast.LENGTH_SHORT).show()

@@ -207,7 +207,7 @@ class IncomeActivity : AppCompatActivity() {
                 }
 
                 val builder = NotificationCompat.Builder(this, channelId)
-                    .setSmallIcon(R.drawable.income_icon) // ensure this exists or replace it
+                    .setSmallIcon(R.drawable.income_icon)
                     .setContentTitle("New Income Added")
                     .setContentText("Your income was added successfully!")
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)

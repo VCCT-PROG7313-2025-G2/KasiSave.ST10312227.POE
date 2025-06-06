@@ -347,16 +347,33 @@ class AddExpenseActivity : AppCompatActivity() {
                         descriptionEditText.setText(lines[0])
                     }
 
-                    // Amount detection (decimal pattern)
-                    val amountRegex = Regex("""\b\d+\.\d{2}\b""")
-                    val amountMatch = amountRegex.findAll(detectedText).toList()
-                    if (amountMatch.isNotEmpty()) {
-                        val highestAmount = amountMatch.map { it.value.toDouble() }.maxOrNull()
-                        highestAmount?.let {
-                            amountEditText.setText(String.format("%.2f", it))
+                    // Amount detection with keyword context
+                    val keywords = listOf("total", "amount", "sum", "balance")
+                    val amountRegex = Regex("""\d{1,3}(,\d{3})*(\.\d{2})|\d+\.\d{2}""")
+
+                    var detectedAmount: Double? = null
+
+                    // Search lines for keywords and amounts
+                    for (line in detectedText.lines()) {
+                        val lowerLine = line.lowercase()
+                        if (keywords.any { it in lowerLine }) {
+                            val match = amountRegex.find(line)
+                            if (match != null) {
+                                detectedAmount = match.value.toDouble()
+                                break
+                            }
                         }
                     }
 
+                    // Fallback: If no amount near keywords found, take the highest amount in whole text
+                    if (detectedAmount == null) {
+                        val allMatches = amountRegex.findAll(detectedText).map { it.value.toDouble() }
+                        detectedAmount = allMatches.maxOrNull()
+                    }
+
+                    detectedAmount?.let {
+                        amountEditText.setText(String.format("%.2f", it))
+                    }
 
                     // Date detection
                     val dateRegexes = listOf(
@@ -364,7 +381,8 @@ class AddExpenseActivity : AppCompatActivity() {
                         Regex("""\b\d{2}[-/]\d{2}[-/]\d{4}\b"""), // dd-MM-yyyy or dd/MM/yyyy
                         Regex("""\b\d{2}[.]\d{2}[.]\d{2,4}\b"""), // dd.MM.yy or dd.MM.yyyy
                         Regex("""\b\d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{4}\b""", RegexOption.IGNORE_CASE),
-                        Regex("""\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b""", RegexOption.IGNORE_CASE)
+                        Regex("""\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b""", RegexOption.IGNORE_CASE),
+                        Regex("""\b\d{2}/\d{2}/\d{2}\b""") // added dd/MM/yy
                     )
 
                     var detectedDate: String? = null
@@ -382,7 +400,6 @@ class AddExpenseActivity : AppCompatActivity() {
                             dateEditText.setText(normalized)
                         }
                     }
-
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Failed to recognize text: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -395,6 +412,7 @@ class AddExpenseActivity : AppCompatActivity() {
 
     private fun normalizeDate(input: String): String? {
         val formats = listOf(
+            "dd/MM/yy", "dd-MM-yy",
             "yyyy-MM-dd", "yyyy/MM/dd",
             "dd-MM-yyyy", "dd/MM/yyyy",
             "dd.MM.yyyy", "dd.MM.yy",
@@ -407,16 +425,18 @@ class AddExpenseActivity : AppCompatActivity() {
                 parser.isLenient = false
                 val parsedDate = parser.parse(input) ?: continue
 
-                // If the year is 2 digits, fix it manually
                 val calendar = Calendar.getInstance()
                 calendar.time = parsedDate
-                val year = calendar.get(Calendar.YEAR)
 
-                if (year < 100) {
-                    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-                    val century = currentYear / 100
-                    val adjustedYear = if (year < 50) century * 100 + year else (century - 1) * 100 + year
-                    calendar.set(Calendar.YEAR, adjustedYear)
+                // Fix 2-digit years to correct century
+                if (format.contains("yy") && !format.contains("yyyy")) {
+                    val year = calendar.get(Calendar.YEAR)
+                    if (year < 100) {
+                        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+                        val century = currentYear / 100
+                        val adjustedYear = if (year < 50) century * 100 + year else (century - 1) * 100 + year
+                        calendar.set(Calendar.YEAR, adjustedYear)
+                    }
                 }
 
                 val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
@@ -427,4 +447,5 @@ class AddExpenseActivity : AppCompatActivity() {
         }
         return null
     }
+
 }
