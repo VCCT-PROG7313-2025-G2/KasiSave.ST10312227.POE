@@ -1,8 +1,14 @@
 package com.example.kasisave
 
 import android.animation.Animator
+import android.Manifest
 import android.app.DatePickerDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.View
@@ -10,6 +16,10 @@ import android.widget.*
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
@@ -42,6 +52,8 @@ class IncomeActivity : AppCompatActivity() {
     private lateinit var userId: String
 
     private val categories = listOf("Salary", "Gift", "Freelance", "Bonus", "Other")
+
+    private val REQUEST_NOTIFICATION_PERMISSION = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,10 +167,71 @@ class IncomeActivity : AppCompatActivity() {
                         override fun onAnimationCancel(animation: Animator) {}
                         override fun onAnimationRepeat(animation: Animator) {}
                     })
+
+                    checkNotificationPermissionAndNotify()
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 }
+        }
+    }
+
+    private fun checkNotificationPermissionAndNotify() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATION_PERMISSION)
+            } else {
+                showIncomeAddedNotification()
+            }
+        } else {
+            showIncomeAddedNotification()
+        }
+    }
+
+    private fun showIncomeAddedNotification() {
+        try {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                val channelId = "income_channel"
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val channel = NotificationChannel(
+                        channelId,
+                        "Income Notifications",
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    )
+                    notificationManager.createNotificationChannel(channel)
+                }
+
+                val builder = NotificationCompat.Builder(this, channelId)
+                    .setSmallIcon(R.drawable.income_icon) // ensure this exists or replace it
+                    .setContentTitle("New Income Added")
+                    .setContentText("Your income was added successfully!")
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+                notificationManager.notify(1, builder.build())
+            } else {
+                // Permission not granted: optionally request it or skip the notification
+                Toast.makeText(this, "Notification permission not granted.", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            Toast.makeText(this, "Unable to post notification: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                showIncomeAddedNotification()
+            } else {
+                Toast.makeText(this, "Notification permission denied", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -193,8 +266,7 @@ class IncomeActivity : AppCompatActivity() {
 
         val digitMatch = Regex("""(?:r\s*)?([\d,]+(?:\.\d+)?)""").find(lowerInput)
         val amountStr = digitMatch?.groupValues?.get(1)?.replace(",", "")
-        val amount = amountStr?.toDoubleOrNull() ?: wordsToNumber(lowerInput) // fallback to words
-
+        val amount = amountStr?.toDoubleOrNull() ?: wordsToNumber(lowerInput)
 
         if (amount != null) {
             amountEditText.setText(amount.toString())
@@ -202,7 +274,6 @@ class IncomeActivity : AppCompatActivity() {
             Toast.makeText(this, "Could not detect amount. Please try again.", Toast.LENGTH_SHORT).show()
         }
 
-        // Detect category from spoken words
         val matchedCategory = categories.find { lowerInput.contains(it.lowercase()) }
         matchedCategory?.let {
             val position = categories.indexOf(it)
@@ -218,44 +289,49 @@ class IncomeActivity : AppCompatActivity() {
             "five" to 5, "six" to 6, "seven" to 7, "eight" to 8, "nine" to 9,
             "ten" to 10, "eleven" to 11, "twelve" to 12, "thirteen" to 13, "fourteen" to 14,
             "fifteen" to 15, "sixteen" to 16, "seventeen" to 17, "eighteen" to 18, "nineteen" to 19,
-            "twenty" to 20, "thirty" to 30, "forty" to 40, "fifty" to 50,
-            "sixty" to 60, "seventy" to 70, "eighty" to 80, "ninety" to 90
+            "twenty" to 20, "thirty" to 30, "forty" to 40, "fifty" to 50, "sixty" to 60,
+            "seventy" to 70, "eighty" to 80, "ninety" to 90, "hundred" to 100, "thousand" to 1000
         )
+        var total = 0.0
+        var current = 0.0
 
-        var total = 0
-        var current = 0
-        var lastMultiplier = 1
-
-        val words = input.lowercase(Locale.getDefault()).replace("-", " ").split(" ")
-
-        for (word in words) {
-            when {
-                numberWords.containsKey(word) -> {
-                    current += numberWords[word]!!
-                }
-                word == "hundred" -> {
-                    if (current == 0) current = 1
+        val tokens = input.split(Regex("\\s|-"))
+        for (token in tokens) {
+            val value = numberWords[token]
+            if (value != null) {
+                if (value == 100) {
                     current *= 100
-                }
-                word == "thousand" -> {
-                    if (current == 0) current = 1
-                    total += current * 1000
-                    current = 0
-                }
-                word == "and" -> {
-                    // skip 'and'
-                }
-                else -> {
-                    // Unknown word, ignore or break
+                } else if (value == 1000) {
+                    current *= 1000
+                    total += current
+                    current = 0.0
+                } else {
+                    current += value
                 }
             }
         }
-
-        total += current
-        return if (total > 0) total.toDouble() else null
+        return total + current
     }
 
-
+    private fun setupBottomNavigation() {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            val intent = when (item.itemId) {
+                R.id.navigation_dashboard -> Intent(this, DashboardActivity::class.java)
+                R.id.navigation_expenses -> Intent(this, ExpensesActivity::class.java)
+                R.id.navigation_income -> null
+                R.id.navigation_milestones -> Intent(this, MilestonesActivity::class.java)
+                R.id.navigation_categories -> Intent(this, CategoriesActivity::class.java)
+                else -> null
+            }
+            intent?.let {
+                startActivity(it)
+                overridePendingTransition(0, 0)
+                finish()
+            }
+            true
+        }
+        bottomNavigationView.selectedItemId = R.id.navigation_income
+    }
     private fun loadIncomeList() {
         firestore.collection("incomes")
             .whereEqualTo("userId", userId)
@@ -281,44 +357,8 @@ class IncomeActivity : AppCompatActivity() {
             }
     }
 
-    private fun setupBottomNavigation() {
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_categories -> {
-                    startActivity(Intent(this, CategoriesActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_expenses -> {
-                    startActivity(Intent(this, ExpensesActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.navigation_income -> true
-                R.id.navigation_milestones -> {
-                    startActivity(Intent(this, MilestonesActivity::class.java).apply {
-                        putExtra("userId", userId)
-                    })
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                else -> false
-            }
-        }
+    private fun updateTotalIncome(incomes: List<Income>) {
+        val total = incomes.sumOf { it.amount }
+        totalIncomeText.text = "Total Income: ₦${String.format("%.2f", total)}"
     }
 }

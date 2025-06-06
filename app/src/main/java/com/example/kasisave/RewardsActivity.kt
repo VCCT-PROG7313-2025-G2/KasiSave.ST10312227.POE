@@ -1,7 +1,9 @@
 package com.example.kasisave
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +14,8 @@ class RewardsActivity : AppCompatActivity() {
 
     private lateinit var tvCoinCount: TextView
     private lateinit var ivCoinIcon: ImageView
+    private lateinit var btnInvitedLeaderboard: Button
+    private lateinit var btnGlobalLeaderboard: Button
 
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
@@ -22,8 +26,18 @@ class RewardsActivity : AppCompatActivity() {
 
         tvCoinCount = findViewById(R.id.tvCoinCount)
         ivCoinIcon = findViewById(R.id.ivCoinIcon)
-
+        btnInvitedLeaderboard = findViewById(R.id.btnInvitedLeaderboard)
+        btnGlobalLeaderboard = findViewById(R.id.btnGlobalLeaderboard)
         loadUserRewards()
+
+        btnInvitedLeaderboard.setOnClickListener {
+            val intent = Intent(this, LeaderboardActivity::class.java)
+            startActivity(intent)
+        }
+        btnGlobalLeaderboard.setOnClickListener {
+            val intent = Intent(this, GlobalLeaderboardActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun loadUserRewards() {

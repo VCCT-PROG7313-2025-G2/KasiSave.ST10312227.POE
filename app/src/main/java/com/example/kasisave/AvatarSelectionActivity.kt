@@ -42,7 +42,9 @@ class AvatarSelectionActivity : AppCompatActivity() {
             "avatar6" to findViewById(R.id.avatar6),
             "avatar7" to findViewById(R.id.avatar7),
             "avatar8" to findViewById(R.id.avatar8),
-            "avatar9" to findViewById(R.id.avatar9)
+            "avatar9" to findViewById(R.id.avatar9),
+            "avatar10" to findViewById(R.id.avatar10),  // NEW
+            "avatar11" to findViewById(R.id.avatar11)   // NEW
         )
 
         avatarViews.forEach { (avatarName, imageView) ->

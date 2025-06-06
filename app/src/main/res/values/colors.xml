@@ -12,6 +12,10 @@
     <color name="bottom_nav_bg">#FFF9C4</color>
     <color name="red">#FF3B30</color>
 
+    <color name="gold">#FFD700</color>
+    <color name="silver">#C0C0C0</color>
+    <color name="bronze">#CD7F32</color>
+
     <color name="teal_700">#018786</color>
     <color name="purple_500">#6200EE</color>
 

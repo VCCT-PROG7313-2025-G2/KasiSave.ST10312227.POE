@@ -1,8 +1,7 @@
 package com.example.kasisave
 
-import android.app.DatePickerDialog
-import android.content.ActivityNotFoundException
-import android.content.Intent
+import android.app.*
+import android.content.*
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.widget.*
@@ -67,32 +66,17 @@ class MilestonesActivity : AppCompatActivity() {
         setupBottomNavigation()
         loadMilestones()
 
-        editTextDeadline.setOnClickListener {
-            showDatePickerDialog()
-        }
+        editTextDeadline.setOnClickListener { showDatePickerDialog() }
         editTextDeadline.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                showDatePickerDialog()
-            }
+            if (hasFocus) showDatePickerDialog()
         }
 
-        buttonAddMilestone.setOnClickListener {
-            addMilestone()
-        }
+        buttonAddMilestone.setOnClickListener { addMilestone() }
 
-        // Mic buttons click listeners for speech input
-        micGoalName.setOnClickListener {
-            startSpeechToText(SPEECH_REQUEST_CODE_GOAL_NAME)
-        }
-        micTargetAmount.setOnClickListener {
-            startSpeechToText(SPEECH_REQUEST_CODE_TARGET_AMOUNT)
-        }
-        micMinSpend.setOnClickListener {
-            startSpeechToText(SPEECH_REQUEST_CODE_MIN_SPEND)
-        }
-        micMaxSpend.setOnClickListener {
-            startSpeechToText(SPEECH_REQUEST_CODE_MAX_SPEND)
-        }
+        micGoalName.setOnClickListener { startSpeechToText(SPEECH_REQUEST_CODE_GOAL_NAME) }
+        micTargetAmount.setOnClickListener { startSpeechToText(SPEECH_REQUEST_CODE_TARGET_AMOUNT) }
+        micMinSpend.setOnClickListener { startSpeechToText(SPEECH_REQUEST_CODE_MIN_SPEND) }
+        micMaxSpend.setOnClickListener { startSpeechToText(SPEECH_REQUEST_CODE_MAX_SPEND) }
     }
 
     private fun initViews() {
@@ -104,7 +88,6 @@ class MilestonesActivity : AppCompatActivity() {
         editTextMaxSpend = findViewById(R.id.maxSpendText)
         buttonAddMilestone = findViewById(R.id.buttonAddMilestone)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
-
         micGoalName = findViewById(R.id.micGoalName)
         micTargetAmount = findViewById(R.id.micTargetAmount)
         micMinSpend = findViewById(R.id.micMinSpend)
@@ -132,20 +115,59 @@ class MilestonesActivity : AppCompatActivity() {
                     val milestone = doc.toObject(Milestone::class.java)
                     if (milestone != null) {
                         milestoneList.add(milestone.copy(id = doc.id))
+                        scheduleMilestoneNotification(milestone)
                     }
                 }
                 milestoneAdapter.notifyDataSetChanged()
             }
     }
 
+    private fun scheduleMilestoneNotification(milestone: Milestone) {
+        try {
+            val deadlineDate = dateFormat.parse(milestone.deadline)
+            val now = Calendar.getInstance()
+            val deadlineCal = Calendar.getInstance().apply { time = deadlineDate!! }
+
+            if (!deadlineCal.before(now)) return
+
+            val intent = Intent(this, NotificationReceiver::class.java).apply {
+                putExtra("milestone_name", milestone.name)
+            }
+
+            val pendingIntent = PendingIntent.getBroadcast(
+                this,
+                milestone.name.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + 1000, // Trigger 1 second later
+                pendingIntent
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun addMilestone() {
         val goalName = editTextGoalName.text.toString().trim()
-        val targetAmount = editTextTargetAmount.text.toString().toDoubleOrNull()
         val deadline = editTextDeadline.text.toString().trim()
-        val minSpend = editTextMinSpend.text.toString().toDoubleOrNull()
-        val maxSpend = editTextMaxSpend.text.toString().toDoubleOrNull()
 
-        if (goalName.isEmpty() || targetAmount == null || deadline.isEmpty() || minSpend == null || maxSpend == null) {
+        val targetAmountStr = editTextTargetAmount.text.toString().trim().replace(",", "")
+        val minSpendStr = editTextMinSpend.text.toString().trim().replace(",", "")
+        val maxSpendStr = editTextMaxSpend.text.toString().trim().replace(",", "")
+
+        val targetAmount = targetAmountStr.toDoubleOrNull()
+        val minSpend = minSpendStr.toDoubleOrNull()
+        val maxSpend = maxSpendStr.toDoubleOrNull()
+
+        if (goalName.isEmpty() || targetAmountStr.isEmpty() || deadline.isEmpty() ||
+            minSpendStr.isEmpty() || maxSpendStr.isEmpty() ||
+            targetAmount == null || minSpend == null || maxSpend == null) {
+
             Toast.makeText(this, "Please fill in all fields correctly", Toast.LENGTH_SHORT).show()
             return
         }
@@ -170,6 +192,7 @@ class MilestonesActivity : AppCompatActivity() {
                 Toast.makeText(this, "Failed to add milestone: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
 
     private fun resetFields() {
         editTextGoalName.text.clear()
@@ -224,9 +247,7 @@ class MilestonesActivity : AppCompatActivity() {
         if (currentDateStr.isNotEmpty()) {
             try {
                 val date = dateFormat.parse(currentDateStr)
-                if (date != null) {
-                    calendar.time = date
-                }
+                if (date != null) calendar.time = date
             } catch (e: Exception) {
                 e.printStackTrace()
             }

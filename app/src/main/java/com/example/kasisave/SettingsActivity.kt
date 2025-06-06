@@ -12,54 +12,56 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var notificationsSwitch: SwitchMaterial
     private lateinit var darkModeSwitch: SwitchMaterial
 
-    // Key for SharedPreferences
-    private val PREFS   = "kasisave_prefs"
-    private val DARK_KEY = "dark_mode_enabled"
+    // SharedPreferences keys
+    private val PREFS_NAME = "kasisave_prefs"
+    private val DARK_MODE_KEY = "dark_mode_enabled"
+    private val NOTIFICATIONS_KEY = "notifications_enabled"
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 🔑 Apply the saved theme early, before super.onCreate inflates views
-        applySavedDarkMode()
+        applySavedDarkMode() // Apply theme before inflating layout
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+        // Initialize UI components
         notificationsSwitch = findViewById(R.id.notificationsSwitch)
-        darkModeSwitch       = findViewById(R.id.darkModeSwitch)
+        darkModeSwitch = findViewById(R.id.darkModeSwitch)
 
-        // ⏪ Restore switch position from prefs
-        darkModeSwitch.isChecked = getSharedPrefs().getBoolean(DARK_KEY, false)
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+        // Restore saved switch states
+        darkModeSwitch.isChecked = prefs.getBoolean(DARK_MODE_KEY, false)
+        notificationsSwitch.isChecked = prefs.getBoolean(NOTIFICATIONS_KEY, true)
+
+        // Dark mode toggle handler
+        darkModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            toggleDarkMode(isChecked)
+        }
+
+        // Notifications toggle handler
         notificationsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean(NOTIFICATIONS_KEY, isChecked).apply()
             Toast.makeText(
                 this,
                 "Notifications ${if (isChecked) "enabled" else "disabled"}",
                 Toast.LENGTH_SHORT
             ).show()
         }
-
-        darkModeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            toggleDarkMode(isChecked)
-        }
     }
 
-    /** Apply the stored night-mode choice before UI inflation */
     private fun applySavedDarkMode() {
-        val enabled = getSharedPrefs().getBoolean(DARK_KEY, false)
-        val mode    = if (enabled)
-            AppCompatDelegate.MODE_NIGHT_YES
-        else
-            AppCompatDelegate.MODE_NIGHT_NO
-        AppCompatDelegate.setDefaultNightMode(mode)
+        val enabled = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(DARK_MODE_KEY, false)
+        AppCompatDelegate.setDefaultNightMode(
+            if (enabled) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+        )
     }
 
-    /** Change theme at runtime and store preference */
     private fun toggleDarkMode(enabled: Boolean) {
-        val mode = if (enabled)
-            AppCompatDelegate.MODE_NIGHT_YES
-        else
-            AppCompatDelegate.MODE_NIGHT_NO
-
-        AppCompatDelegate.setDefaultNightMode(mode)
-        getSharedPrefs().edit().putBoolean(DARK_KEY, enabled).apply()
+        AppCompatDelegate.setDefaultNightMode(
+            if (enabled) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+        )
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(DARK_MODE_KEY, enabled).apply()
 
         Toast.makeText(
             this,
@@ -67,7 +69,4 @@ class SettingsActivity : AppCompatActivity() {
             Toast.LENGTH_SHORT
         ).show()
     }
-
-    private fun getSharedPrefs() =
-        getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }

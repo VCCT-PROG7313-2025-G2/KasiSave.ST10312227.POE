@@ -49,8 +49,8 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         categorySpinner.adapter = spinnerAdapter
 
-        // Setup RecyclerView
-        adapter = ExpenseAdapter(expensesList)
+        // Setup RecyclerView with fixed adapter constructor
+        adapter = ExpenseAdapter(this, expensesList) // ✅ Pass context
         recyclerFilteredExpenses.layoutManager = LinearLayoutManager(this)
         recyclerFilteredExpenses.adapter = adapter
 
@@ -117,12 +117,13 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
 
         query.get()
             .addOnSuccessListener { snapshot ->
-                expensesList.clear()
-                val total = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
-                    .onEach { expensesList.add(it) }
-                    .sumOf { it.amount }
+                val filtered = snapshot.documents.mapNotNull { it.toObject(Expense::class.java) }
+                val total = filtered.sumOf { it.amount }
 
+                expensesList.clear()
+                expensesList.addAll(filtered)
                 adapter.notifyDataSetChanged()
+
                 txtTotalFiltered.text = "Total: R %.2f".format(total)
 
                 if (expensesList.isEmpty()) {
