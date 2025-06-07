@@ -10,4 +10,10 @@
     <item name="android:background">@drawable/avatar_background</item>
     <item name="android:elevation">4dp</item>
 </style>
+
+    <style name="FloatingHintText" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
 </resources>

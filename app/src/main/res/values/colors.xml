@@ -6,7 +6,7 @@
     <!-- Greens -->
     <color name="green_card">#39714A</color>
 
-    <color name="green_dark">#388E3C</color>    <!-- Darker Green -->
+    <color name="green_dark">#398125</color>    <!-- Darker Green -->
     <color name="green_light">#C8E6C9</color>   <!-- Light Green -->
     <color name="green_background">#E8F5E9</color> <!-- Very light green for backgrounds -->
     <color name="bottom_nav_bg">#FFF9C4</color>

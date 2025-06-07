@@ -32,5 +32,15 @@
 
         <!-- Enable dark mode -->
         <item name="android:forceDarkAllowed">false</item>
+
+        <!-- Force white hint text globally -->
+        <item name="hintTextColor">@color/white</item>
+        <item name="textInputStyle">@style/CustomTextInputStyle</item>
+    </style>
+
+    <!-- Custom TextInputLayout style to enforce white hint text -->
+    <style name="CustomTextInputStyle" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="hintTextColor">@color/white</item>
+        <item name="android:textColorHint">@color/white</item>
     </style>
 </resources>
