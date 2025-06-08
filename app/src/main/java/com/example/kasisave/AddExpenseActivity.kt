@@ -5,6 +5,8 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -26,6 +28,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -285,9 +288,16 @@ class AddExpenseActivity : AppCompatActivity() {
     }
 
     private fun uploadImageToFirebase(userId: String, dateMillis: Long, amount: Double, category: String) {
-        val storageRef = storage.reference.child("expense_images/$userId/${photoFile!!.name}")
-        val uploadTask = storageRef.putFile(Uri.fromFile(photoFile!!))
+        val bitmap = BitmapFactory.decodeFile(photoFile!!.absolutePath)
 
+        // Compress the image to JPEG format with 50% quality
+        val baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos)
+        val compressedData = baos.toByteArray()
+
+        val storageRef = storage.reference.child("expense_images/$userId/${photoFile!!.name}")
+
+        val uploadTask = storageRef.putBytes(compressedData)
         uploadTask
             .addOnSuccessListener {
                 storageRef.downloadUrl.addOnSuccessListener { uri ->
@@ -300,6 +310,7 @@ class AddExpenseActivity : AppCompatActivity() {
                 saveButton.isEnabled = true
             }
     }
+
 
     private fun saveExpenseToFirestore(userId: String, dateMillis: Long, amount: Double, category: String, downloadUrl: String?) {
         val expense = Expense(

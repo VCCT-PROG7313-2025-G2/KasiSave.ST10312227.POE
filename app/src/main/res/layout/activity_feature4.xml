@@ -23,10 +23,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="48dp"
-            android:fontFamily="@font/aclonica"
+            android:fontFamily="@font/league_spartan_bold"
             android:text="KASI SAVE"
-            android:textSize="42sp"
-            android:textColor="@color/green_primary"
+            android:textSize="50sp"
+            android:textColor="@color/green_dark"
             android:gravity="center"
             android:shadowColor="#33000000"
             android:shadowDx="0"
@@ -47,10 +47,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:fontFamily="@font/aclonica"
+            android:fontFamily="@font/league_spartan_bold"
             android:text="ADD EXPENSES WITH A CLICK OF A BUTTON!"
-            android:textSize="20sp"
-            android:textColor="@color/dark_gray"
+            android:textSize="22sp"
+            android:textColor="@color/black"
             android:gravity="center" />
 
         <RadioGroup
@@ -64,21 +64,21 @@
                 android:id="@+id/radioButton2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/green_primary"
+                android:buttonTint="@color/green_dark"
                 android:clickable="false" />
 
             <RadioButton
                 android:id="@+id/radioButton5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/green_primary"
+                android:buttonTint="@color/green_dark"
                 android:clickable="false" />
 
             <RadioButton
                 android:id="@+id/radioButton6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/green_primary"
+                android:buttonTint="@color/green_dark"
                 android:clickable="false" />
 
             <RadioButton
@@ -86,7 +86,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:buttonTint="@color/green_primary"
+                android:buttonTint="@color/green_dark"
                 android:clickable="false" />
         </RadioGroup>
 
@@ -95,10 +95,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
+            android:fontFamily="@font/league_spartan_bold"
             android:text="Get Started"
             android:textColor="@color/colorOnPrimary"
-            android:textSize="16sp"
+            android:textSize="18sp"
             app:cornerRadius="16dp"
-            app:backgroundTint="@color/green_primary" />
+            app:backgroundTint="@color/green_dark" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

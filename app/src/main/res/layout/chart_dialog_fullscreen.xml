@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="16dp">
+
+    <!-- Header with title and close button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/chartTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="Spending Analysis"
+                android:textSize="24sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClose"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="Close"
+                app:icon="@drawable/ic_close"
+                app:iconTint="@color/text_primary"
+                app:iconGravity="textStart"
+                app:cornerRadius="8dp"
+                app:strokeColor="@color/text_primary"
+                app:strokeWidth="1dp"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@android:color/transparent"/>
+        </RelativeLayout>
+
+        <!-- Period selection for combined chart -->
+        <LinearLayout
+            android:id="@+id/periodLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:paddingTop="8dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select time period:"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/periodSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"/>
+
+            <LinearLayout
+                android:id="@+id/customPeriodLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:paddingTop="8dp"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/startDateBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Start Date"
+                    android:textAllCaps="false"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:textColor="@android:color/white"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="to"
+                    android:textSize="16sp"
+                    android:padding="8dp"
+                    android:layout_gravity="center"/>
+
+                <Button
+                    android:id="@+id/endDateBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="End Date"
+                    android:textAllCaps="false"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:textColor="@android:color/white"/>
+
+                <Button
+                    android:id="@+id/applyPeriodBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Apply"
+                    android:backgroundTint="@color/colorAccent"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Chart container with 90% screen height -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:color/white">
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/dialogPieChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/dialogBarChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <com.github.mikephil.charting.charts.CombinedChart
+            android:id="@+id/dialogCombinedChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+    </FrameLayout>
+</LinearLayout>
