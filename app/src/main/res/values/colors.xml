@@ -42,8 +42,8 @@
 
 
 
-
-    <color name="colorPrimary">#FFD60A</color>          <!-- Bright lightning yellow -->
+    <color name="yellow">#FFEB3B</color>
+    <color name="colorPrimary">#398125</color>
     <color name="colorPrimaryVariant">#FFB300</color>
     <color name="colorAccent">#6DD5FA</color>           <!-- Cyan blue -->
     <color name="colorBackground">#1E3C72</color>       <!-- Gradient dark blue -->

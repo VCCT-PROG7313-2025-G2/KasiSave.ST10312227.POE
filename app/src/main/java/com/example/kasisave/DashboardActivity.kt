@@ -14,6 +14,7 @@ import android.widget.*
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
@@ -31,13 +32,15 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -46,6 +49,9 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     private lateinit var remainingBudgetText: TextView
     private lateinit var goalAlertText: TextView
     private lateinit var spendingGoalStatus: TextView
+    private lateinit var currentSpendingText: TextView
+    private lateinit var goalAmountText: TextView
+    private lateinit var spendingProgressBar: LinearProgressIndicator
     private lateinit var pieChartCard: MaterialCardView
     private lateinit var barChartCard: MaterialCardView
     private lateinit var lineChartCard: MaterialCardView
@@ -98,6 +104,9 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         remainingBudgetText = findViewById(R.id.remainingBudgetText)
         goalAlertText = findViewById(R.id.goalAlertText)
         spendingGoalStatus = findViewById(R.id.spendingGoalStatus)
+        currentSpendingText = findViewById(R.id.currentSpendingText)
+        goalAmountText = findViewById(R.id.goalAmountText)
+        spendingProgressBar = findViewById(R.id.spendingProgressBar)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
 
         // Initialize chart cards
@@ -383,7 +392,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                     true
                 )
 
-                Log.d("ChartDebug", "Loading expenses from ${selectedStartDate} to ${selectedEndDate}")
+                Log.d("ChartDebug", "Loading expenses from $selectedStartDate to $selectedEndDate")
 
                 // Fetch all expenses for the user
                 val expensesSnap = firestore.collection("expenses")
@@ -395,27 +404,32 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                 val categoryMap = mutableMapOf<String, Float>()
                 var expenseCount = 0
 
+                // Use a for loop instead of forEach to allow continue
                 for (doc in expensesSnap.documents) {
-                    val dateStr = doc.getString("date") ?: ""
-
-                    try {
-                        val expenseDate = firestoreDateFormat.parse(dateStr)
-
-                        if (expenseDate != null &&
-                            expenseDate >= selectedStartDate!! &&
-                            expenseDate <= selectedEndDate!!) {
-
-                            val cat = doc.getString("category") ?: "Other"
-                            val amt = (doc.getDouble("amount") ?: 0.0).toFloat()
-                            categoryMap[cat] = categoryMap.getOrDefault(cat, 0f) + amt
-                            expenseCount++
-                        }
-                    } catch (e: ParseException) {
-                        Log.e("DateError", "Failed to parse date: $dateStr", e)
+                    val dateMillis = doc.getLong("dateMillis")
+                    if (dateMillis == null) {
+                        Log.e("DateError", "Missing dateMillis in document ${doc.id}")
+                        continue
                     }
+
+                    val expenseDate = Date(dateMillis)
+
+                    if (selectedStartDate != null && selectedEndDate != null) {
+                        if (expenseDate.before(selectedStartDate) || expenseDate.after(selectedEndDate)) {
+                            continue
+                        }
+                    } else {
+                        // If dates are null, skip this expense
+                        continue
+                    }
+
+                    val cat = doc.getString("category") ?: "Other"
+                    val amt = (doc.getDouble("amount") ?: 0.0).toFloat()
+
+                    categoryMap[cat] = categoryMap.getOrDefault(cat, 0f) + amt
+                    expenseCount++
                 }
 
-                // Dismiss loading
                 loading.dismiss()
 
                 Log.d("ChartDebug", "Found $expenseCount expenses in date range")
@@ -435,8 +449,8 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
 
                 // Create bar entries
                 val barEntries = mutableListOf<BarEntry>()
-                categories.forEachIndexed { index, _ ->
-                    barEntries.add(BarEntry(index.toFloat(), expenses[index]))
+                for (i in categories.indices) {
+                    barEntries.add(BarEntry(i.toFloat(), expenses[i]))
                 }
 
                 val barDataSet = BarDataSet(barEntries, "Amount Spent by Category").apply {
@@ -448,7 +462,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                 val barData = BarData(barDataSet)
 
                 // Create dummy line data (required for CombinedChart)
-                val lineDataSet = LineDataSet(mutableListOf<Entry>(), "").apply {
+                val lineDataSet = LineDataSet(mutableListOf(), "").apply {
                     setDrawValues(false)
                     setDrawCircles(false)
                     setDrawIcons(false)
@@ -499,7 +513,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                             minLimit.lineWidth = 2f
                             minLimit.textColor = Color.BLACK
                             minLimit.textSize = 12f
-                            minLimit.enableDashedLine(10f, 10f, 0f)  // Make dashed line
+                            minLimit.enableDashedLine(10f, 10f, 0f)  // Dashed line
                             addLimitLine(minLimit)
                         }
 
@@ -509,7 +523,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                             maxLimit.lineWidth = 2f
                             maxLimit.textColor = Color.BLACK
                             maxLimit.textSize = 12f
-                            maxLimit.enableDashedLine(10f, 10f, 0f)  // Make dashed line
+                            maxLimit.enableDashedLine(10f, 10f, 0f)  // Dashed line
                             addLimitLine(maxLimit)
                         }
                     }
@@ -526,7 +540,6 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                     setPinchZoom(true)
                     setExtraOffsets(20f, 30f, 20f, 20f)  // More top padding for labels
 
-                    // Important settings for combined chart
                     setDrawBarShadow(false)
                     setDrawValueAboveBar(true)
                     drawOrder = arrayOf(CombinedChart.DrawOrder.BAR, CombinedChart.DrawOrder.LINE)
@@ -534,6 +547,9 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                     animateY(1000)
                     invalidate()
                 }
+
+                // Update spending goal progress after loading expenses
+                updateSpendingGoalProgress(totalExpenses, minSpendingGoal, maxSpendingGoal)
 
             } catch (e: Exception) {
                 Log.e("ChartError", "Failed to load chart data", e)
@@ -545,6 +561,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             }
         }
     }
+
 
     private fun updateNavigationHeader() {
         val headerView = navigationView.getHeaderView(0)
@@ -679,6 +696,9 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                     else -> "✅ On track"
                 }
 
+                // Update spending goal section
+                updateSpendingGoalProgress(totalExpenses, minSpendingGoal, maxSpendingGoal)
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 budgetInfoText.text = ""
@@ -688,6 +708,68 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                 spendingGoalStatus.text = "Error loading data"
             }
         }
+    }
+
+    private fun updateSpendingGoalProgress(
+        currentSpending: Double,
+        minGoal: Double,
+        maxGoal: Double
+    ) {
+        runOnUiThread {
+            currentSpendingText.text = "R%.2f".format(currentSpending)
+
+            when {
+                maxGoal > 0 -> {
+                    goalAmountText.text = "R%.2f".format(maxGoal)
+                    val progress = (currentSpending / maxGoal * 100).toInt()
+                    spendingProgressBar.progress = min(progress, 100)
+
+                    spendingGoalStatus.text = when {
+                        currentSpending > maxGoal -> "Exceeded goal by R${"%.2f".format(currentSpending - maxGoal)}"
+                        currentSpending > maxGoal * 0.9 -> "Close to spending limit"
+                        else -> "Within spending goal"
+                    }
+
+                    // Update progress bar color
+                    spendingProgressBar.setIndicatorColor(
+                        when {
+                            currentSpending > maxGoal -> ContextCompat.getColor(this@DashboardActivity, R.color.red)
+                            currentSpending > maxGoal * 0.75 -> ContextCompat.getColor(this@DashboardActivity, R.color.yellow)
+                            else -> ContextCompat.getColor(this@DashboardActivity, R.color.green_primary)
+                        }
+                    )
+                }
+                minGoal > 0 -> {
+                    goalAmountText.text = "R%.2f".format(minGoal)
+                    val progress = (currentSpending / minGoal * 100).toInt()
+                    spendingProgressBar.progress = min(progress, 100)
+
+                    spendingGoalStatus.text = if (currentSpending < minGoal)
+                        "Below minimum goal by R${"%.2f".format(minGoal - currentSpending)}"
+                    else
+                        "Reached minimum spending goal"
+
+                    // Update progress bar color
+                    spendingProgressBar.setIndicatorColor(
+                        if (currentSpending < minGoal)
+                            ContextCompat.getColor(this@DashboardActivity, R.color.yellow)
+                        else
+                            ContextCompat.getColor(this@DashboardActivity, R.color.green_primary)
+                    )
+                }
+                else -> {
+                    goalAmountText.text = "No goal set"
+                    spendingProgressBar.progress = 0
+                    spendingGoalStatus.text = "Set a spending goal in Milestones"
+                    spendingProgressBar.setIndicatorColor(ContextCompat.getColor(this@DashboardActivity, R.color.green_primary))
+                }
+            }
+        }
+    }
+
+    // Helper function to safely set progress
+    private fun LinearProgressIndicator.setProgressSafely(progress: Int) {
+        this.progress = min(max(progress, 0), 100)
     }
 
     // Enum to represent chart types

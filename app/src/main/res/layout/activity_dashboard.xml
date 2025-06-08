@@ -307,47 +307,8 @@
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
 
-                    <!-- Period Selector - Modernized -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="24dp"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="2dp"
-                        app:cardBackgroundColor="@android:color/white">
 
-                        <LinearLayout
-                            android:id="@+id/periodSelectorLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Select time period"
-                                android:textColor="@color/text_primary"
-                                android:textSize="16sp"
-                                android:layout_marginBottom="12dp"
-                                android:fontFamily="sans-serif-medium" />
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                                <AutoCompleteTextView
-                                    android:id="@+id/spinnerPeriod"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:inputType="none"
-                                    android:entries="@array/period_options" />
-                            </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Spending Goal Card -->
+                    <!-- Spending Goal Card - Updated with enhanced progress bar -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -372,6 +333,42 @@
                                 android:layout_marginBottom="12dp"
                                 android:fontFamily="sans-serif-medium" />
 
+                            <!-- Progress indicator with labels -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginBottom="4dp">
+
+                                <TextView
+                                    android:id="@+id/currentSpendingText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="R0.00"
+                                    android:textSize="12sp"
+                                    android:textColor="@color/green_dark" />
+
+                                <TextView
+                                    android:id="@+id/goalAmountText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="R0.00"
+                                    android:textSize="12sp"
+                                    android:textColor="@color/green_dark"
+                                    android:textAlignment="textEnd" />
+                            </LinearLayout>
+
+                            <!-- Progress bar with improved styling -->
+                            <com.google.android.material.progressindicator.LinearProgressIndicator
+                                android:id="@+id/spendingProgressBar"
+                                android:layout_width="match_parent"
+                                android:layout_height="10dp"
+                                android:indeterminate="false"
+                                app:trackColor="@color/green_light"
+                                app:trackCornerRadius="5dp"
+                                app:indicatorColor="@color/green_primary" />
+
+                            <!-- Status message -->
                             <TextView
                                 android:id="@+id/spendingGoalStatus"
                                 android:layout_width="match_parent"
@@ -379,19 +376,13 @@
                                 android:text="Goal status will appear here"
                                 android:textSize="14sp"
                                 android:textColor="#757575"
-                            android:lineSpacingMultiplier="1.2"
-                            android:fontFamily="sans-serif" />
-
-                            <com.google.android.material.progressindicator.LinearProgressIndicator
-                                android:layout_width="match_parent"
-                                android:layout_height="8dp"
-                                android:layout_marginTop="16dp"
-                                android:indeterminate="false"
-                                app:trackColor="#EEEEEE"
-                            app:trackCornerRadius="4dp"
-                            app:indicatorColor="@color/green_primary" />
+                                android:lineSpacingMultiplier="1.2"
+                                android:layout_marginTop="12dp"
+                                android:gravity="center"
+                                android:fontFamily="sans-serif" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
+
 
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>

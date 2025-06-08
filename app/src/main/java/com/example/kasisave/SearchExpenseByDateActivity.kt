@@ -50,7 +50,7 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
         categorySpinner.adapter = spinnerAdapter
 
         // Setup RecyclerView with fixed adapter constructor
-        adapter = ExpenseAdapter(this, expensesList) // ✅ Pass context
+        adapter = ExpenseAdapter(this, expensesList)
         recyclerFilteredExpenses.layoutManager = LinearLayoutManager(this)
         recyclerFilteredExpenses.adapter = adapter
 

@@ -11,13 +11,12 @@
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/aclonica"
+        android:fontFamily="sans-serif"
         android:gravity="center"
         android:text="KASI SAVE"
-        android:textColor="@color/green_primary"
+        android:textColor="@color/green_dark"
         android:textSize="40sp"
         android:layout_marginTop="16dp"
-        android:shadowColor="#000000"
         android:shadowDx="0"
         android:shadowDy="2"
         android:shadowRadius="4" />
@@ -32,6 +31,7 @@
         android:textSize="22sp"
         android:textStyle="bold"
         android:gravity="center"
+        android:fontFamily="sans-serif"
         android:layout_below="@id/textView2"
         android:layout_marginTop="8dp" />
 
@@ -44,6 +44,7 @@
         android:textColor="@color/dark_gray"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:fontFamily="sans-serif"
         android:layout_below="@id/incomeTitle"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp" />
@@ -57,6 +58,7 @@
         android:text="No expenses added yet"
         android:textColor="@android:color/darker_gray"
         android:textSize="16sp"
+        android:fontFamily="sans-serif"
         android:visibility="gone"
         android:layout_below="@id/totalExpensesTextView"
         android:layout_marginTop="8dp" />
@@ -79,8 +81,9 @@
         android:text="Search Expenses"
         android:textSize="16sp"
         android:textColor="@color/colorOnPrimary"
+        android:fontFamily="sans-serif"
         app:cornerRadius="16dp"
-        app:backgroundTint="@color/green_primary"
+        app:backgroundTint="@color/green_dark"
         android:layout_alignParentBottom="true"
         android:layout_above="@id/bottomNavigationView"
         android:layout_marginBottom="60dp" />
@@ -95,7 +98,7 @@
         android:layout_above="@id/bottomNavigationView"
         android:src="@android:drawable/ic_input_add"
         android:contentDescription="Add Expense"
-        app:backgroundTint="@color/green_primary"
+        app:backgroundTint="@color/green_dark"
         app:tint="@android:color/white" />
 
     <!-- Bottom Navigation -->
@@ -105,8 +108,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/light_background"
-        app:itemIconTint="@color/green_primary"
-        app:itemTextColor="@color/green_primary"
+        app:itemIconTint="@color/green_dark"
+        app:itemTextColor="@color/green_dark"
         app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>

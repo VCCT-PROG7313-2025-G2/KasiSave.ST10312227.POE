@@ -22,8 +22,9 @@
             android:inputType="none"
             android:focusable="false"
             android:padding="12dp"
-            android:backgroundTint="@color/green_primary"
-            android:textColor="@color/dark_gray"
+            android:fontFamily="sans-serif"
+            android:background="@drawable/edittextadd_background"
+            android:textColor="@color/white"
             android:textColorHint="@color/light_gray" />
 
         <!-- Start Time -->
@@ -36,8 +37,9 @@
             android:inputType="none"
             android:focusable="false"
             android:padding="12dp"
-            android:backgroundTint="@color/green_primary"
-            android:textColor="@color/dark_gray"
+            android:fontFamily="sans-serif"
+            android:background="@drawable/edittextadd_background"
+            android:textColor="@color/white"
             android:textColorHint="@color/light_gray" />
 
         <!-- End Time -->
@@ -50,8 +52,9 @@
             android:inputType="none"
             android:focusable="false"
             android:padding="12dp"
-            android:backgroundTint="@color/green_primary"
-            android:textColor="@color/dark_gray"
+            android:fontFamily="sans-serif"
+            android:background="@drawable/edittextadd_background"
+            android:textColor="@color/white"
             android:textColorHint="@color/light_gray" />
 
         <!-- Description + Mic + OCR Scan -->
@@ -70,8 +73,9 @@
                 android:hint="Description"
                 android:inputType="text"
                 android:padding="12dp"
-                android:backgroundTint="@color/green_primary"
-                android:textColor="@color/dark_gray"
+                android:fontFamily="sans-serif"
+                android:background="@drawable/edittextadd_background"
+                android:textColor="@color/white"
                 android:textColorHint="@color/light_gray" />
 
             <ImageButton
@@ -109,8 +113,9 @@
                 android:hint="Amount"
                 android:inputType="numberDecimal"
                 android:padding="12dp"
-                android:backgroundTint="@color/green_primary"
-                android:textColor="@color/dark_gray"
+                android:fontFamily="sans-serif"
+                android:background="@drawable/edittextadd_background"
+                android:textColor="@color/white"
                 android:textColorHint="@color/light_gray" />
 
             <ImageButton
@@ -129,8 +134,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"
-            android:backgroundTint="@color/light_gray"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/light_gray" />
 
         <!-- Attach Photo -->
         <Button
@@ -139,7 +144,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Attach Photo"
-            android:backgroundTint="@color/green_primary"
+            android:fontFamily="sans-serif"
+            android:backgroundTint="@color/green_dark"
             android:textColor="@android:color/white" />
 
         <!-- Photo Preview -->
@@ -160,6 +166,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Recurring Expense?"
+            android:fontFamily="sans-serif"
             android:textColor="@color/dark_gray" />
 
         <!-- Lottie Animation -->
@@ -180,7 +187,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="Save Expense"
-            android:backgroundTint="@color/green_primary"
+            android:fontFamily="sans-serif"
+            android:backgroundTint="@color/green_dark"
             android:textColor="@android:color/white" />
     </LinearLayout>
 </ScrollView>
