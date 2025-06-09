@@ -1,68 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_background"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp">
 
-    <!-- Start Date Button -->
-    <Button
-        android:id="@+id/btnStartDate"
+    <!-- Title -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select Start Date"
-        android:backgroundTint="@color/green_primary"
-        android:textColor="@android:color/white"
-        android:fontFamily="@font/aclonica" />
+        android:text="Search Expenses"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="16dp"/>
 
-    <!-- End Date Button -->
-    <Button
-        android:id="@+id/btnEndDate"
+    <!-- Start Date -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Select End Date"
-        android:backgroundTint="@color/green_primary"
-        android:textColor="@android:color/white"
-        android:fontFamily="@font/aclonica" />
+        android:text="Start Date"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
 
-    <!-- Category Spinner -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_calendar"
+            android:tint="@color/green_dark"
+            android:layout_marginEnd="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStartDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SELECT START DATE"
+            android:textAllCaps="true"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/green_dark"
+            android:textColor="@color/white"
+            android:fontFamily="sans-serif-medium"
+            android:padding="16dp"/>
+    </LinearLayout>
+
+    <!-- End Date -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="End Date"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_calendar"
+            android:tint="@color/green_dark"
+            android:layout_marginEnd="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEndDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SELECT END DATE"
+            android:textAllCaps="true"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/green_dark"
+            android:textColor="@color/white"
+            android:fontFamily="sans-serif-medium"
+            android:padding="16dp"/>
+    </LinearLayout>
+
+    <!-- Category -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Category (Optional)"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp"/>
+
     <Spinner
         android:id="@+id/categorySpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="@color/light_gray" />
+        android:padding="16dp"
+        android:background="@drawable/edittextadd_background"
+        android:popupBackground="@color/white"/>
 
     <!-- Filter Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnFilter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Filter"
-        android:backgroundTint="@color/green_primary"
-        android:textColor="@android:color/white"
-        android:fontFamily="@font/aclonica" />
+        android:text="SEARCH EXPENSES"
+        android:textAllCaps="true"
+        app:cornerRadius="12dp"
+        app:backgroundTint="@color/green_dark"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:padding="16dp"
+        android:layout_marginTop="24dp"/>
 
-    <!-- Total Amount Display -->
-    <TextView
-        android:id="@+id/txtTotalFiltered"
-        android:layout_width="wrap_content"
+    <!-- Total Amount Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Total: R 0.00"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@color/dark_gray"
-        android:fontFamily="@font/aclonica" />
+        android:layout_marginTop="24dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Total Expenses:"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"/>
+
+            <TextView
+                android:id="@+id/txtTotalFiltered"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R 0.00"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/red"
+                android:fontFamily="sans-serif-medium"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Results Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search Results"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"/>
 
     <!-- RecyclerView for Filtered Expenses -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerFilteredExpenses"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:layout_weight="1" />
-
+        android:layout_weight="1"
+        android:padding="4dp"/>
 </LinearLayout>

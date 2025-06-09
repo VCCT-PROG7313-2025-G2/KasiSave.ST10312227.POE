@@ -140,6 +140,8 @@
         android:layout_height="wrap_content"
         android:background="?android:attr/windowBackground"
         android:elevation="8dp"
+        app:itemIconTint="@drawable/drawer_item_color_state"
+        app:itemTextColor="@drawable/drawer_item_color_state"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

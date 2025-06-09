@@ -7,6 +7,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
@@ -43,11 +44,31 @@ class SearchExpenseByDateActivity : AppCompatActivity() {
         categorySpinner = findViewById(R.id.categorySpinner)
 
         // Setup Spinner with "All" option
-        val rawCategories = resources.getStringArray(R.array.expense_categories)
-        val categories = listOf("All") + rawCategories
+        val categories = mutableListOf("All")
         val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         categorySpinner.adapter = spinnerAdapter
+
+// Fetch custom categories from Firestore
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(userId)
+                .collection("categories")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val custom = snapshot.documents.mapNotNull { it.getString("name") }
+                    val defaults = resources.getStringArray(R.array.expense_categories)
+                    val combined = (defaults.toList() + custom).distinct()
+                    categories.addAll(combined)
+                    spinnerAdapter.notifyDataSetChanged()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Failed to load categories", Toast.LENGTH_SHORT).show()
+                }
+        }
+
 
         // Setup RecyclerView with fixed adapter constructor
         adapter = ExpenseAdapter(this, expensesList)
