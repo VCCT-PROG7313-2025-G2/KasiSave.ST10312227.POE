@@ -53,9 +53,10 @@
                     android:id="@+id/firstNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/edittextadd_background"
                     android:hint="First Name"
                     android:inputType="textPersonName"
-                    android:fontFamily="@font/aclonica" />
+                    android:fontFamily="sans-serif" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Last Name -->
@@ -74,9 +75,10 @@
                     android:id="@+id/lastNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/edittextadd_background"
                     android:hint="Last Name"
                     android:inputType="textPersonName"
-                    android:fontFamily="@font/aclonica" />
+                    android:fontFamily="sans-serif" />
             </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -96,9 +98,10 @@
                     android:id="@+id/contactInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/edittextadd_background"
                     android:hint="Contact Number"
                     android:inputType="phone"
-                    android:fontFamily="@font/aclonica" />
+                    android:fontFamily="sans-serif" />
             </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -112,7 +115,7 @@
                 android:textColor="@color/colorOnPrimary"
                 android:textSize="16sp"
                 app:cornerRadius="16dp"
-                app:backgroundTint="@color/green_primary" />
+                app:backgroundTint="@color/green_dark" />
 
 
         </LinearLayout>

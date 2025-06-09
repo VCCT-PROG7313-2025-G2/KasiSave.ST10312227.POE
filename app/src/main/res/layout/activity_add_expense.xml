@@ -124,16 +124,6 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_marginStart="8dp"
                 android:padding="12dp" />
-
-            <ImageButton
-                android:id="@+id/btnRecognizeText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@android:drawable/ic_menu_camera"
-                android:contentDescription="Scan text"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:layout_marginStart="8dp"
-                android:padding="12dp" />
         </LinearLayout>
 
         <!-- Amount -->
@@ -220,6 +210,27 @@
             android:scaleType="centerCrop"
             android:contentDescription="Expense image"
             android:visibility="visible" />
+
+        <!-- Scan Photo Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Scan Text from Photo"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"/>
+
+        <ImageButton
+            android:id="@+id/btnRecognizeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_camera"
+            android:contentDescription="Scan text from photo"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:padding="12dp" />
 
         <!-- Recurring Expense -->
         <CheckBox
