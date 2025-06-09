@@ -16,8 +16,8 @@
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="18sp"
-        android:textColor="@color/green_primary"
-        android:fontFamily="@font/aclonica" />
+        android:textColor="@color/green_dark"
+        android:fontFamily="sans-serif" />
 
     <TextView
         android:id="@+id/textTargetAmount"
@@ -26,7 +26,7 @@
         android:layout_marginTop="4dp"
         android:textColor="@color/dark_gray"
         android:textSize="16sp"
-        android:fontFamily="@font/aclonica" />
+        android:fontFamily="sans-serif" />
 
     <TextView
         android:id="@+id/textDeadline"
@@ -35,7 +35,7 @@
         android:layout_marginTop="2dp"
         android:textColor="@color/dark_gray"
         android:textSize="14sp"
-        android:fontFamily="@font/aclonica" />
+        android:fontFamily="sans-serif" />
 
     <TextView
         android:id="@+id/minSpendText"
@@ -44,7 +44,7 @@
         android:layout_marginTop="2dp"
         android:textColor="@color/dark_gray"
         android:textSize="14sp"
-        android:fontFamily="@font/aclonica" />
+        android:fontFamily="sans-serif" />
 
     <TextView
         android:id="@+id/maxSpendText"
@@ -53,6 +53,6 @@
         android:layout_marginTop="2dp"
         android:textColor="@color/dark_gray"
         android:textSize="14sp"
-        android:fontFamily="@font/aclonica" />
+        android:fontFamily="sans-serif" />
 
 </LinearLayout>
