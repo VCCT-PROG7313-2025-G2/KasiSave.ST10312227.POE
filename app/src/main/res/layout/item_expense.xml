@@ -1,91 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    android:padding="16dp"
     android:elevation="4dp"
-    android:background="@color/light_background"
-    >
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Category -->
-        <TextView
-            android:id="@+id/textViewCategory"
-            android:layout_width="wrap_content"
+        <!-- Top Row: Category and Amount -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Category"
-            android:textSize="18sp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/green_dark"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <!-- Amount -->
-        <TextView
-            android:id="@+id/textViewAmount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="R0.00"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/dark_gray"
-            android:layout_marginTop="4dp" />
+            <!-- Category -->
+            <TextView
+                android:id="@+id/textViewCategory"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Category"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/green_dark"
+                android:textStyle="bold" />
 
-        <!-- Date -->
-        <TextView
-            android:id="@+id/textViewDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Date"
-            android:textSize="14sp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/dark_gray"
-            android:layout_marginTop="6dp" />
+            <!-- Amount -->
+            <TextView
+                android:id="@+id/textViewAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R0.00"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/red"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp" />
+        </LinearLayout>
 
-        <!-- Time -->
-        <TextView
-            android:id="@+id/textViewTime"
-            android:layout_width="wrap_content"
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/light_gray" />
+
+        <!-- Date and Time -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Time"
-            android:textSize="14sp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/dark_gray"
-            android:layout_marginTop="2dp" />
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_calendar"
+                android:tint="@color/green_dark"
+                android:layout_marginEnd="8dp"/>
+
+            <!-- Date -->
+            <TextView
+                android:id="@+id/textViewDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Jan 1, 2023"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/dark_gray" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_clock"
+                android:tint="@color/green_dark"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"/>
+
+            <!-- Time -->
+            <TextView
+                android:id="@+id/textViewTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12:00 PM"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/dark_gray" />
+        </LinearLayout>
 
         <!-- Description -->
-        <TextView
-            android:id="@+id/textViewDescription"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Description"
-            android:textSize="14sp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/dark_gray"
-            android:layout_marginTop="6dp" />
+            android:orientation="horizontal"
+            android:layout_marginTop="12px">
 
-        <!-- Photo -->
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_description"
+                android:tint="@color/green_dark"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Description"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/dark_gray"
+                android:maxLines="2"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <!-- Photo Preview -->
         <ImageView
             android:id="@+id/imageViewPhoto"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
+            android:layout_height="120dp"
             android:layout_marginTop="12dp"
             android:scaleType="centerCrop"
-            android:visibility="gone" />
+            android:background="@color/light_gray"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_receipt" />
 
         <!-- Recurring Status -->
-        <TextView
-            android:id="@+id/textViewRecurring"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Recurring"
-            android:textSize="14sp"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/green_dark"
-            android:layout_marginTop="12dp" />
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            android:id="@+id/recurringBadge">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_recurring"
+                android:tint="@color/white"
+                android:layout_marginEnd="4dp"/>
+
+            <TextView
+                android:id="@+id/textViewRecurring"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Recurring"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/white" />
+        </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

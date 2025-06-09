@@ -1,53 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_background"
-    android:padding="16dp">
+    android:padding="24dp">
 
     <!-- App Title -->
     <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
+        android:id="@+id/appTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif"
-        android:gravity="center"
         android:text="KASI SAVE"
         android:textColor="@color/green_dark"
-        android:textSize="40sp"
+        android:textSize="36sp"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
         android:layout_marginTop="16dp"
-        android:shadowDx="0"
-        android:shadowDy="2"
-        android:shadowRadius="4" />
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Expenses Title -->
     <TextView
-        android:id="@+id/incomeTitle"
+        android:id="@+id/expensesTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Expenses"
-        android:textColor="@color/dark_gray"
-        android:textSize="22sp"
+        android:textColor="@color/black"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:fontFamily="sans-serif"
-        android:layout_below="@id/textView2"
-        android:layout_marginTop="8dp" />
+        android:fontFamily="sans-serif-medium"
+        app:layout_constraintTop_toBottomOf="@id/appTitle"
+        android:layout_marginBottom="8dp"/>
 
     <!-- Total Expenses -->
     <TextView
         android:id="@+id/totalExpensesTextView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Total: R 0.00"
-        android:textColor="@color/dark_gray"
+        android:textColor="@color/black"
         android:textSize="18sp"
-        android:textStyle="bold"
+        android:gravity="center"
         android:fontFamily="sans-serif"
-        android:layout_below="@id/incomeTitle"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="8dp" />
+        app:layout_constraintTop_toBottomOf="@id/expensesTitle"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Search Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSearchByDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SEARCH EXPENSES"
+        android:textAllCaps="true"
+        android:textSize="16sp"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif"
+        app:cornerRadius="12dp"
+        app:backgroundTint="@color/green_dark"
+        app:layout_constraintTop_toBottomOf="@id/totalExpensesTextView"
+        android:layout_marginBottom="16dp"/>
 
     <!-- No Expenses Message -->
     <TextView
@@ -60,56 +76,44 @@
         android:textSize="16sp"
         android:fontFamily="sans-serif"
         android:visibility="gone"
-        android:layout_below="@id/totalExpensesTextView"
-        android:layout_marginTop="8dp" />
+        app:layout_constraintTop_toBottomOf="@id/btnSearchByDate"
+        android:layout_marginTop="16dp"/>
 
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expensesRecyclerView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_below="@id/noExpensesTextView"
-        android:layout_above="@id/btnSearchByDate"
         android:clipToPadding="false"
-        android:padding="8dp" />
-
-    <!-- Search Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSearchByDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Search Expenses"
-        android:textSize="16sp"
-        android:textColor="@color/colorOnPrimary"
-        android:fontFamily="sans-serif"
-        app:cornerRadius="16dp"
-        app:backgroundTint="@color/green_dark"
-        android:layout_alignParentBottom="true"
-        android:layout_above="@id/bottomNavigationView"
-        android:layout_marginBottom="60dp" />
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/btnSearchByDate"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addExpenseButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:layout_above="@id/bottomNavigationView"
         android:src="@android:drawable/ic_input_add"
         android:contentDescription="Add Expense"
         app:backgroundTint="@color/green_dark"
-        app:tint="@android:color/white" />
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"/>
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@color/light_background"
-        app:itemIconTint="@color/green_dark"
-        app:itemTextColor="@color/green_dark"
+        android:background="?android:attr/windowBackground"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_nav_menu" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

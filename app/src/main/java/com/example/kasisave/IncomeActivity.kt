@@ -37,7 +37,7 @@ class IncomeActivity : AppCompatActivity() {
     private lateinit var selectedDateText: TextView
     private lateinit var categorySpinner: Spinner
     private lateinit var recurringCheckBox: CheckBox
-    private lateinit var addIncomeButton: FloatingActionButton
+    private lateinit var addIncomeButton: Button
     private lateinit var incomeRecyclerView: RecyclerView
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var totalIncomeText: TextView
